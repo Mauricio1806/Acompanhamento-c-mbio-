@@ -1,8 +1,12 @@
 {
   "meta": {
-    "data": null,
-    "timestamp": null,
-    "volumes_referencia_eur": [5000, 10000, 20000],
+    "data": "2026-06-30",
+    "timestamp": "2026-06-30T21:00:04",
+    "volumes_referencia_eur": [
+      5000,
+      10000,
+      20000
+    ],
     "moeda": "EUR",
     "cidade": "Salvador/BA"
   },

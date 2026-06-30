@@ -1,8 +1,8 @@
 {
   "meta": {
-    "data_coleta": null,
-    "hora_atualizacao": null,
-    "timestamp": null,
+    "data_coleta": "2026-06-30",
+    "hora_atualizacao": "21:00:04",
+    "timestamp": "2026-06-30T21:00:04",
     "total_casas": 0,
     "moeda": "EUR",
     "cidade": "Salvador/BA",
