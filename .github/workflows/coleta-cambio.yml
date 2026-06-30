@@ -1,9 +1,9 @@
-name: Cambio Salvador - Coleta Diaria
+name: Coleta Cambio Salvador
 
 on:
   schedule:
-    - cron: '0 13 * * *'
-    - cron: '0 19 * * *'
+    - cron: '0 13 * * *'   # 10h BRT (UTC-3)
+    - cron: '0 19 * * *'   # 16h BRT (UTC-3)
   workflow_dispatch:
 
 permissions:
@@ -12,12 +12,14 @@ permissions:
 jobs:
   coleta:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           persist-credentials: true
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -30,15 +32,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run scraper + build JSONs
-        run: |
-          python main.py --collect
-          python main.py --build-json
+      - name: Run collection pipeline
+        run: python main.py
 
       - name: Commit and push results
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/cambio.db docs/data/*.json
-          git diff --staged --quiet || git commit -m "chore: coleta automatica $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push
+          if git diff --staged --quiet; then
+            echo "Nenhuma mudanca para commitar."
+          else
+            git commit -m "chore: coleta automatica $(date -u +'%Y-%m-%d %H:%MZ')"
+            git push
+          fi

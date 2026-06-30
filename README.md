@@ -1,66 +1,91 @@
 # 💱 Monitor de Câmbio EUR/BRL — Salvador, BA
 
-Sistema autônomo de monitoramento de cotações do Euro (espécie) em casas de câmbio físicas de Salvador, Bahia.
+Sistema autônomo de monitoramento de cotações do Euro (espécie) em casas de câmbio de Salvador.
 
-## 📊 Dashboard
+📊 **Dashboard:** https://mauricio1806.github.io/Acompanhamento-c-mbio-/
 
-Acesse o dashboard interativo em: **[GitHub Pages](https://mauricio1806.github.io/Acompanhamento-c-mbio-/)**
+## Como funciona
 
-## 🎯 Objetivo
+1. **GitHub Actions roda 2x/dia** (10h e 16h BRT)
+2. **PTAX + Wise** coletados como referência (BCB + Wise API)
+3. **MelhorCâmbio Salvador** raspado para cotações reais de casas locais
+4. **Cotações manuais** (data/manual_quotes.json) processadas se existirem
+5. Cálculos: IOF 1,1%, custo efetivo, spread PTAX/Wise, variação dia anterior
+6. JSONs estáticos gerados em `docs/data/` e dashboard publicado via GitHub Pages
 
-Monitorar o valor de venda do EURO (compra pelo cliente) em todas as principais casas de câmbio físicas de Salvador, gerando um quadro comparativo atualizado automaticamente duas vezes ao dia (10h e 16h, horário de Brasília).
-
-## 🏪 Casas Monitoradas
-
-- **Confidence Câmbio** — Salvador Shopping, Shopping Barra, Shopping da Bahia, Aeroporto SSA
-- **Cotação Câmbio e Turismo**
-- **Get Money Câmbio**
-- **Frente Corretora de Câmbio**
-- **Daycoval Câmbio**
-- **Ourominas (OM DTVM)**
-- **Treviso Câmbio**
-- **Bancos** — Banco do Brasil, Itaú, Bradesco (agências centrais)
-
-### Referências
-- **PTAX** — Taxa oficial do Banco Central do Brasil
-- **Wise** — Benchmark digital
-
-## 💰 Funcionalidades
-
-**Quadro Comparativo** com: valor de venda EUR (espécie), spread vs PTAX, spread vs Wise, IOF 1,1%, custo efetivo final, variação vs dia anterior.
-
-**Ranking Top 3** com diferenças em R$ para volumes de EUR 5.000, EUR 10.000 e EUR 20.000.
-
-**Dashboard Interativo**: tabela com ordenação, filtros por bairro/tipo, gráfico histórico (30/60/90 dias), input de volume customizável, alerta de threshold.
-
-## 📁 Estrutura
+## Estrutura
 
 ```
-├── scrapers/         # Scripts de coleta de dados
-├── core/             # Banco de dados, cálculos, gerador de JSONs
-├── data/             # Banco SQLite com histórico
-├── docs/             # Dashboard HTML (GitHub Pages)
+.
+├── .github/workflows/coleta-cambio.yml   # cron 2x/dia
+├── scrapers/
+│   ├── bcb_ptax.py        # PTAX (BCB) + Wise
+│   └── melhorcambio.py    # casas de Salvador (HTML scraping)
+├── core/
+│   ├── db.py              # SQLite
+│   ├── calculator.py      # IOF, spread, ranking, custo efetivo
+│   └── builder.py         # gera latest/history/ranking.json
+├── docs/                  # dashboard (GitHub Pages, pasta /docs)
 │   ├── index.html
-│   ├── assets/       # CSS e JavaScript
-│   └── data/         # JSONs estáticos (latest, history, ranking)
-├── config.yaml       # Configuração geral
-├── main.py           # Script principal
-└── requirements.txt  # Dependências Python
+│   ├── assets/{style.css, app.js}
+│   └── data/{latest,history,ranking}.json
+├── data/
+│   ├── cambio.db                       # SQLite versionado (histórico)
+│   └── manual_quotes.example.json      # template para entrada manual
+├── config.yaml            # IOF, casas, volumes de referência
+├── main.py                # pipeline principal
+└── requirements.txt
 ```
 
-## ⚙️ Como Funciona
+## Uso local
 
-1. **Coleta**: O agente busca cotações EUR de cada casa via web scraping e APIs
-2. **Referências**: PTAX (Banco Central) e Wise são coletados como benchmark
-3. **Cálculos**: Spread, IOF (1,1%), custo efetivo, variação dia anterior
-4. **Banco de dados**: Cotações salvas em SQLite com histórico de 90 dias
-5. **JSONs**: Geração de `latest.json`, `history.json`, `ranking.json`
-6. **Commit**: Push automático para GitHub → GitHub Pages atualiza o dashboard
+```bash
+pip install -r requirements.txt
+python main.py              # pipeline completo (coleta + JSONs)
+python main.py --dry-run    # coleta e mostra sem persistir
+python main.py --init       # só inicializa banco e cadastra casas
+python main.py --build-json # só regenera JSONs do banco existente
+python main.py --vacuum     # remove histórico antigo + vacuum
+```
 
-## 🔄 Atualização Automática
+## Cotações manuais
 
-Execução via Scheduled Task: **10h e 16h (Brasília)**
+Para casas que não aparecem no MelhorCâmbio (ex: Confidence, Get Money, agências bancárias), você pode adicionar cotações manualmente:
 
----
+```bash
+cp data/manual_quotes.example.json data/manual_quotes.json
+# edite com as cotações que você consultou (WhatsApp, telefone, presencial)
+git add data/manual_quotes.json && git commit -m "feat: cotações manuais hoje" && git push
+```
 
-*Dados coletados automaticamente. IOF 1,1% incluso no custo efetivo. Valores para operação em espécie (notas físicas).*
+Na próxima execução, essas cotações serão incorporadas ao banco e ao dashboard.
+
+Formato:
+```json
+[
+  {
+    "casa_slug": "confidence-shopping-barra",
+    "valor_venda_especie": 6.42,
+    "valor_venda_cartao": 6.55,
+    "fonte": "manual_whatsapp",
+    "observacao": "consultado em 29/06"
+  }
+]
+```
+
+`casa_slug` precisa existir em `config.yaml` (ou ser adicionado lá).
+
+## Stack
+
+- Python 3.11 + requests + BeautifulSoup + lxml + pyyaml
+- SQLite (versionado no repo, ~90 dias de histórico)
+- GitHub Actions (cron 2x/dia)
+- GitHub Pages (pasta `/docs`)
+- Chart.js (CDN, sem build)
+
+## Notas
+
+- IOF 1,1% aplicado a operação em **espécie** (notas físicas)
+- Valor "custo efetivo" = `venda * (1 + IOF)` — é o que você efetivamente paga por EUR
+- O MelhorCâmbio agrega cotações de várias casas em Salvador; pode mostrar 1 ou várias dependendo do dia
+- Spread vs PTAX > 5% é flagado como alerta (configurável em `config.yaml`)

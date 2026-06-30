@@ -1,17 +1,14 @@
 {
   "meta": {
-    "data": "2026-06-24",
-    "timestamp": "2026-06-24T22:28:22.885212",
-    "volumes_referencia_eur": [
-      5000,
-      10000,
-      20000
-    ],
+    "data": null,
+    "timestamp": null,
+    "volumes_referencia_eur": [5000, 10000, 20000],
     "moeda": "EUR",
     "cidade": "Salvador/BA"
   },
   "ranking": {
     "top3": [],
-    "volumes": {}
+    "completo": [],
+    "por_volume": {}
   }
 }

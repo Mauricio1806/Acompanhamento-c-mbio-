@@ -1,126 +1,107 @@
 """
-Módulo de cálculos financeiros para o monitor de câmbio.
-IOF, spread, custo efetivo e comparativos por volume.
+Calculos financeiros: custo efetivo, spread vs PTAX/Wise, variacao,
+ranking por volume.
 """
+from typing import Iterable
 
 
-def calcular_custo_efetivo(valor_venda, iof_rate=0.011):
+def calcular_custo_efetivo(valor_venda: float, iof: float = 0.011) -> float:
     """
-    Calcula custo efetivo final por EUR incluindo IOF.
-    Para espécie: IOF = 1,1%
-    Fórmula: valor_venda × (1 + IOF)
+    Custo final por EUR considerando IOF de operacao em especie.
+    IOF padrao para especie e 1.1% (Decreto 12.499/2025); o config.yaml pode
+    sobrescrever.
     """
-    if valor_venda is None or valor_venda <= 0:
+    if valor_venda is None:
         return None
-    return round(valor_venda * (1 + iof_rate), 4)
+    return round(valor_venda * (1 + iof), 4)
 
 
-def calcular_spread_ptax(valor_venda, ptax_venda):
-    """
-    Calcula spread percentual em relação ao PTAX.
-    Spread = ((valor_venda / ptax_venda) - 1) × 100
-    """
-    if not valor_venda or not ptax_venda or ptax_venda <= 0:
+def calcular_spread_ptax(valor_venda: float, ptax_venda: float) -> float | None:
+    """Spread percentual da cotacao da casa vs PTAX venda (oficial)."""
+    if not valor_venda or not ptax_venda:
         return None
-    return round(((valor_venda / ptax_venda) - 1) * 100, 2)
+    spread = ((valor_venda / ptax_venda) - 1) * 100
+    return round(spread, 2)
 
 
-def calcular_spread_wise(valor_venda, wise_rate):
-    """
-    Calcula spread percentual em relação à taxa Wise.
-    """
-    if not valor_venda or not wise_rate or wise_rate <= 0:
+def calcular_spread_wise(valor_venda: float, wise_rate: float) -> float | None:
+    """Spread percentual da cotacao da casa vs Wise (benchmark digital)."""
+    if not valor_venda or not wise_rate:
         return None
-    return round(((valor_venda / wise_rate) - 1) * 100, 2)
+    spread = ((valor_venda / wise_rate) - 1) * 100
+    return round(spread, 2)
 
 
-def calcular_variacao(valor_atual, valor_anterior):
-    """
-    Calcula variação em R$ e % vs dia anterior.
-    Retorna (variacao_rs, variacao_pct)
-    """
-    if not valor_atual or not valor_anterior or valor_anterior <= 0:
+def calcular_variacao(valor_atual: float, valor_anterior: float) -> tuple[float | None, float | None]:
+    """Retorna (variacao_RS, variacao_pct) entre dois valores."""
+    if not valor_atual or not valor_anterior:
         return (None, None)
-    
-    variacao_rs = round(valor_atual - valor_anterior, 4)
-    variacao_pct = round((variacao_rs / valor_anterior) * 100, 2)
-    return (variacao_rs, variacao_pct)
+    var_rs = round(valor_atual - valor_anterior, 4)
+    var_pct = round(((valor_atual / valor_anterior) - 1) * 100, 2)
+    return (var_rs, var_pct)
 
 
-def calcular_custo_volume(custo_efetivo, volume_eur):
-    """
-    Calcula custo total em R$ para um volume em EUR.
-    """
-    if not custo_efetivo or custo_efetivo <= 0:
-        return None
-    return round(custo_efetivo * volume_eur, 2)
-
-
-def calcular_economia_volume(custo_efetivo_casa, custo_efetivo_pior, volume_eur):
-    """
-    Calcula economia em R$ comparando com a casa mais cara.
-    """
-    if not custo_efetivo_casa or not custo_efetivo_pior:
-        return None
-    diferenca = custo_efetivo_pior - custo_efetivo_casa
-    return round(diferenca * volume_eur, 2)
-
-
-def verificar_discrepancia(valor_venda, ptax_venda, max_spread=3.0):
-    """
-    Verifica se há discrepância significativa vs PTAX.
-    Retorna True se spread > max_spread%.
-    """
-    spread = calcular_spread_ptax(valor_venda, ptax_venda)
-    if spread is None:
+def verificar_discrepancia(valor_venda: float, ptax_venda: float, limite_pct: float = 3.0) -> bool:
+    """True se spread vs PTAX > limite (flag para revisao manual)."""
+    if not valor_venda or not ptax_venda:
         return False
-    return abs(spread) > max_spread
+    spread = abs(((valor_venda / ptax_venda) - 1) * 100)
+    return spread > limite_pct
 
 
-def gerar_ranking(cotacoes, volumes=[5000, 10000, 20000]):
+def gerar_ranking(cotacoes: Iterable[dict], volumes: list[int]) -> dict:
     """
-    Gera ranking das melhores cotações (menor custo efetivo).
-    Retorna top 3 com diferenças por volume.
+    Gera ranking ordenado pelo menor custo efetivo, calculando o custo
+    total para cada volume de referencia.
     """
-    # Filtrar cotações válidas
-    validas = [c for c in cotacoes if c.get("custo_efetivo") and c["custo_efetivo"] > 0]
-    
+    validas = [
+        c for c in cotacoes
+        if c.get("custo_efetivo") and c["custo_efetivo"] > 0
+    ]
     if not validas:
-        return {"top3": [], "volumes": {}}
-    
-    # Ordenar por custo efetivo
-    validas.sort(key=lambda x: x["custo_efetivo"])
-    
-    top3 = validas[:3]
-    pior = validas[-1] if validas else None
-    
-    resultado = {
-        "top3": [],
-        "pior_custo": pior["custo_efetivo"] if pior else None,
-        "volumes": {}
-    }
-    
-    for i, casa in enumerate(top3):
-        entry = {
-            "posicao": i + 1,
-            "casa_slug": casa.get("casa_slug"),
-            "nome": casa.get("nome"),
-            "custo_efetivo": casa["custo_efetivo"],
-            "valor_venda": casa.get("valor_venda_especie"),
-            "spread_ptax": casa.get("spread_ptax"),
-            "diferenca_por_volume": {}
-        }
-        
-        for vol in volumes:
-            custo_casa = calcular_custo_volume(casa["custo_efetivo"], vol)
-            custo_pior = calcular_custo_volume(pior["custo_efetivo"], vol) if pior else None
-            economia = calcular_economia_volume(casa["custo_efetivo"], pior["custo_efetivo"], vol) if pior else None
-            
-            entry["diferenca_por_volume"][str(vol)] = {
-                "custo_total_brl": custo_casa,
-                "economia_vs_pior": economia
+        return {"top3": [], "completo": [], "por_volume": {}}
+
+    # ordenar pelo menor custo efetivo
+    ordenado = sorted(validas, key=lambda x: x["custo_efetivo"])
+
+    top3 = ordenado[:3]
+    pior = ordenado[-1]["custo_efetivo"] if ordenado else None
+
+    por_volume = {}
+    for vol in volumes:
+        items = []
+        for c in ordenado:
+            custo_total = round(c["custo_efetivo"] * vol, 2)
+            economia_vs_pior = round((pior - c["custo_efetivo"]) * vol, 2) if pior else 0
+            items.append({
+                "casa_slug": c.get("casa_slug") or c.get("slug"),
+                "nome": c.get("nome"),
+                "custo_efetivo": c["custo_efetivo"],
+                "custo_total": custo_total,
+                "economia_vs_pior": economia_vs_pior,
+            })
+        por_volume[str(vol)] = items
+
+    return {
+        "top3": [
+            {
+                "posicao": i + 1,
+                "casa_slug": c.get("casa_slug") or c.get("slug"),
+                "nome": c.get("nome"),
+                "custo_efetivo": c["custo_efetivo"],
+                "valor_venda": c.get("valor_venda_especie"),
+                "spread_ptax": c.get("spread_ptax"),
             }
-        
-        resultado["top3"].append(entry)
-    
-    return resultado
+            for i, c in enumerate(top3)
+        ],
+        "completo": [
+            {
+                "posicao": i + 1,
+                "casa_slug": c.get("casa_slug") or c.get("slug"),
+                "nome": c.get("nome"),
+                "custo_efetivo": c["custo_efetivo"],
+            }
+            for i, c in enumerate(ordenado)
+        ],
+        "por_volume": por_volume,
+    }

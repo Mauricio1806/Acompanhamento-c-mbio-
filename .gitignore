@@ -1,15 +1,13 @@
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
 .venv/
 venv/
 env/
 
-# Env
-.env
-
-# SQLite WAL/SHM (manter o .db principal versionado p/ histórico)
+# SQLite WAL/SHM (manter so o .db principal versionado)
 *.db-wal
 *.db-shm
 
@@ -19,3 +17,16 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Env
+.env
+.env.local
+
+# Cotacoes manuais reais nao sobem por padrao
+# (descomente se quiser commitar diretamente)
+# data/manual_quotes.json

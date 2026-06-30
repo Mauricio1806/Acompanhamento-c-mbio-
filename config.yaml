@@ -1,77 +1,66 @@
-# Configuração do Monitor de Câmbio EUR/BRL - Salvador, BA
+# Configuracao do Monitor de Cambio EUR/BRL - Salvador, BA
 # ========================================================
+#
+# Casas que o scraper popula automaticamente sao cadastradas em runtime
+# (slug com sufixo "-mc"). As entradas abaixo sao apenas para casas que
+# voce queira preencher manualmente via data/manual_quotes.json
+# (ex: Confidence, Get Money quando nao aparecem no MelhorCambio).
 
 moeda: EUR
 cidade: Salvador
 estado: BA
 
-# Threshold de alerta (R$ por EUR) - null = desabilitado
-# Quando definido, destaca casas abaixo deste valor
-THRESHOLD_EUR_BRL: null
-
-# IOF aplicável
+# IOF (Decreto 12.499/2025)
 iof:
-  especie: 0.011    # 1,1% para moeda em espécie
-  cartao: 0.0638    # 6,38% para cartão pré-pago (atualizado)
+  especie: 0.011    # 1,1% espécie
+  cartao: 0.0638    # 6,38% cartão pré-pago
 
-# Volumes de referência para cálculo comparativo (em EUR)
+# Threshold para flagar discrepancias suspeitas
+max_spread_ptax: 5.0   # %
+
+# Historico mantido
+historico_dias: 90
+
+# Volumes de referencia para ranking
 volumes_referencia:
   - 5000
   - 10000
   - 20000
 
-# Discrepância máxima vs PTAX antes de flagar para revisão (%)
-max_spread_ptax: 3.0
-
-# Dias de histórico mantidos
-historico_dias: 90
-
-# Casas de câmbio monitoradas em Salvador
+# Casas para entrada manual via data/manual_quotes.json
+# (o scraper MelhorCambio adiciona casas automaticamente com sufixo "-mc")
 casas_cambio:
-  - nome: "Confidence Câmbio - Salvador Shopping"
-    slug: "confidence-salvador-shopping"
+  - slug: "confidence-salvador-shopping"
+    nome: "Confidence Cambio - Salvador Shopping"
     url: "https://www.confidencecambio.com.br/lojas/salvador-shopping/"
-    endereco: "Av. Tancredo Neves, 3133 - Caminho das Árvores"
-    bairro: "Caminho das Árvores"
+    endereco: "Av. Tancredo Neves, 3133 - Caminho das Arvores, Salvador - BA"
+    bairro: "Caminho das Arvores"
     tipo: "casa_cambio"
-    horario: "Seg-Sáb 9h-22h, Dom 12h-21h"
+    horario: "Seg-Sab 9h-22h, Dom 12h-21h"
     telefone: "(71) 3341-2030"
     whatsapp: null
     google_maps: "https://maps.google.com/?q=Confidence+Cambio+Salvador+Shopping"
     formas_pagamento: ["Pix", "TED", "Dinheiro"]
     agendamento_acima: 3000
 
-  - nome: "Confidence Câmbio - Shopping Barra"
-    slug: "confidence-shopping-barra"
+  - slug: "confidence-shopping-barra"
+    nome: "Confidence Cambio - Shopping Barra"
     url: "https://www.confidencecambio.com.br/lojas/shopping-barra/"
-    endereco: "Av. Centenário, 2992 - Chame-Chame"
+    endereco: "Av. Centenario, 2992 - Chame-Chame, Salvador - BA"
     bairro: "Barra"
     tipo: "casa_cambio"
-    horario: "Seg-Sáb 9h-22h, Dom 12h-21h"
+    horario: "Seg-Sab 9h-22h, Dom 12h-21h"
     telefone: "(71) 3264-6050"
     whatsapp: null
     google_maps: "https://maps.google.com/?q=Confidence+Cambio+Shopping+Barra+Salvador"
     formas_pagamento: ["Pix", "TED", "Dinheiro"]
     agendamento_acima: 3000
 
-  - nome: "Confidence Câmbio - Shopping da Bahia"
-    slug: "confidence-shopping-bahia"
-    url: "https://www.confidencecambio.com.br/lojas/shopping-da-bahia/"
-    endereco: "Av. Tancredo Neves, 148 - Caminho das Árvores"
-    bairro: "Caminho das Árvores"
-    tipo: "casa_cambio"
-    horario: "Seg-Sáb 9h-22h, Dom 12h-21h"
-    telefone: "(71) 3353-6111"
-    whatsapp: null
-    google_maps: "https://maps.google.com/?q=Confidence+Cambio+Shopping+da+Bahia+Salvador"
-    formas_pagamento: ["Pix", "TED", "Dinheiro"]
-    agendamento_acima: 3000
-
-  - nome: "Confidence Câmbio - Aeroporto SSA"
-    slug: "confidence-aeroporto-ssa"
+  - slug: "confidence-aeroporto-ssa"
+    nome: "Confidence Cambio - Aeroporto SSA"
     url: "https://www.confidencecambio.com.br/lojas/aeroporto-salvador/"
-    endereco: "Aeroporto Int. de Salvador, Praça Gago Coutinho, s/n - São Cristóvão"
-    bairro: "São Cristóvão"
+    endereco: "Aeroporto Int. de Salvador, Sao Cristovao, Salvador - BA"
+    bairro: "Sao Cristovao"
     tipo: "aeroporto"
     horario: "Todos os dias 6h-22h"
     telefone: "(71) 3204-1286"
@@ -80,21 +69,8 @@ casas_cambio:
     formas_pagamento: ["Pix", "TED", "Dinheiro"]
     agendamento_acima: 3000
 
-  - nome: "Cotação Câmbio e Turismo"
-    slug: "cotacao-turismo"
-    url: "https://www.cotacaoturismo.com.br"
-    endereco: "Salvador, BA"
-    bairro: "Centro"
-    tipo: "casa_cambio"
-    horario: "Seg-Sex 9h-18h"
-    telefone: null
-    whatsapp: null
-    google_maps: "https://maps.google.com/?q=Cotação+Câmbio+Turismo+Salvador"
-    formas_pagamento: ["Pix", "TED", "Dinheiro"]
-    agendamento_acima: 3000
-
-  - nome: "Get Money Câmbio"
-    slug: "get-money"
+  - slug: "get-money"
+    nome: "Get Money Cambio"
     url: "https://www.getmoney.com.br"
     endereco: "Salvador, BA"
     bairro: "Centro"
@@ -102,38 +78,12 @@ casas_cambio:
     horario: "Seg-Sex 9h-18h"
     telefone: null
     whatsapp: null
-    google_maps: "https://maps.google.com/?q=Get+Money+Câmbio+Salvador"
+    google_maps: "https://maps.google.com/?q=Get+Money+Cambio+Salvador"
     formas_pagamento: ["Pix", "TED", "Dinheiro"]
     agendamento_acima: 3000
 
-  - nome: "Frente Corretora de Câmbio"
-    slug: "frente-corretora"
-    url: "https://www.frentecorretora.com.br"
-    endereco: "Salvador, BA"
-    bairro: "Centro"
-    tipo: "corretora"
-    horario: "Seg-Sex 9h-18h"
-    telefone: null
-    whatsapp: null
-    google_maps: "https://maps.google.com/?q=Frente+Corretora+Câmbio+Salvador"
-    formas_pagamento: ["Pix", "TED", "Dinheiro"]
-    agendamento_acima: 3000
-
-  - nome: "Daycoval Câmbio"
-    slug: "daycoval"
-    url: "https://www.daycoval.com.br/cambio"
-    endereco: "Salvador, BA"
-    bairro: "Centro"
-    tipo: "banco"
-    horario: "Seg-Sex 9h-18h"
-    telefone: null
-    whatsapp: null
-    google_maps: "https://maps.google.com/?q=Daycoval+Câmbio+Salvador"
-    formas_pagamento: ["Pix", "TED", "Dinheiro"]
-    agendamento_acima: 3000
-
-  - nome: "Ourominas (OM DTVM)"
-    slug: "ourominas"
+  - slug: "ourominas"
+    nome: "Ourominas (OM DTVM)"
     url: "https://www.ourominas.com/cotacao-do-dia"
     endereco: "Salvador, BA"
     bairro: "Centro"
@@ -144,71 +94,3 @@ casas_cambio:
     google_maps: "https://maps.google.com/?q=Ourominas+Salvador"
     formas_pagamento: ["Pix", "TED", "Dinheiro"]
     agendamento_acima: 3000
-
-  - nome: "Treviso Câmbio"
-    slug: "treviso"
-    url: "https://www.trevisocambio.com.br"
-    endereco: "Salvador, BA"
-    bairro: "Centro"
-    tipo: "casa_cambio"
-    horario: "Seg-Sex 9h-18h"
-    telefone: null
-    whatsapp: null
-    google_maps: "https://maps.google.com/?q=Treviso+Câmbio+Salvador"
-    formas_pagamento: ["Pix", "TED", "Dinheiro"]
-    agendamento_acima: 3000
-
-  - nome: "Banco do Brasil - Ag. Central Salvador"
-    slug: "bb-central"
-    url: "https://www.bb.com.br/site/cambio/"
-    endereco: "Rua Miguel Calmon, 285 - Comércio"
-    bairro: "Comércio"
-    tipo: "banco"
-    horario: "Seg-Sex 10h-16h"
-    telefone: "4004-0001"
-    whatsapp: null
-    google_maps: "https://maps.google.com/?q=Banco+do+Brasil+Comércio+Salvador"
-    formas_pagamento: ["TED", "Dinheiro"]
-    agendamento_acima: 5000
-
-  - nome: "Itaú - Ag. Central Salvador"
-    slug: "itau-central"
-    url: "https://www.itau.com.br/cambio"
-    endereco: "Rua Miguel Calmon, 555 - Comércio"
-    bairro: "Comércio"
-    tipo: "banco"
-    horario: "Seg-Sex 10h-16h"
-    telefone: "4004-4828"
-    whatsapp: null
-    google_maps: "https://maps.google.com/?q=Itaú+Comércio+Salvador"
-    formas_pagamento: ["TED", "Dinheiro"]
-    agendamento_acima: 5000
-
-  - nome: "Bradesco - Ag. Central Salvador"
-    slug: "bradesco-central"
-    url: "https://www.bradesco.com.br/cambio"
-    endereco: "Rua Miguel Calmon, 315 - Comércio"
-    bairro: "Comércio"
-    tipo: "banco"
-    horario: "Seg-Sex 10h-16h"
-    telefone: "4002-0022"
-    whatsapp: null
-    google_maps: "https://maps.google.com/?q=Bradesco+Comércio+Salvador"
-    formas_pagamento: ["TED", "Dinheiro"]
-    agendamento_acima: 5000
-
-# Referências digitais (benchmark)
-benchmarks:
-  - nome: "Wise"
-    slug: "wise"
-    url: "https://wise.com/br/"
-    tipo: "digital"
-  - nome: "Remessa Online"
-    slug: "remessa-online"
-    url: "https://www.remessaonline.com.br"
-    tipo: "digital"
-
-# API Banco Central
-bcb:
-  ptax_url: "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='EUR'&@dataCotacao='{data}'&$format=json"
-  moeda: "EUR"

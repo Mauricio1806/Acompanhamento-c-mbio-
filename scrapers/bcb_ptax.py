@@ -1,79 +1,79 @@
 """
-Scraper para PTAX do Banco Central do Brasil.
-Usa API pública OLINDA/SGS.
+Scrapers de referencia: PTAX (Banco Central) e Wise.
+Mantido do projeto original do Abacus (foi validado que funciona).
 """
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
-def get_ptax_eur(data=None):
+HEADERS_WISE = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
+    "Accept": "application/json",
+}
+
+
+def get_ptax_eur(data: str | None = None) -> dict | None:
     """
-    Obtém cotação PTAX EUR/BRL do dia.
-    Retorna o último boletim disponível (venda).
+    Obtem cotacao PTAX EUR/BRL do dia (ou data informada).
+    A API do BCB so retorna em dias uteis; se vier vazio, tenta os 5 dias
+    anteriores para nao quebrar em finais de semana e feriados.
     """
-    if data is None:
-        data = datetime.now().strftime("%m-%d-%Y")
-    
-    url = (
+    base_url = (
         "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/"
         "CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)"
-        f"?@moeda='EUR'&@dataCotacao='{data}'&$format=json"
+        "?@moeda='EUR'&@dataCotacao='{data}'&$format=json"
     )
-    
-    try:
-        response = requests.get(url, timeout=15)
-        response.raise_for_status()
-        dados = response.json()
-        
-        values = dados.get("value", [])
-        if not values:
-            return None
-        
-        # Pegar o último boletim do dia
-        ultimo = values[-1]
-        
-        return {
-            "cotacao_compra": ultimo.get("cotacaoCompra"),
-            "cotacao_venda": ultimo.get("cotacaoVenda"),
-            "data_hora": ultimo.get("dataHoraCotacao"),
-            "tipo_boletim": ultimo.get("tipoBoletim"),
-            "paridade_compra": ultimo.get("paridadeCompra"),
-            "paridade_venda": ultimo.get("paridadeVenda")
-        }
-    
-    except Exception as e:
-        print(f"[BCB PTAX] Erro ao buscar PTAX: {e}")
-        return None
+
+    if data is None:
+        agora = datetime.now()
+    else:
+        agora = datetime.strptime(data, "%m-%d-%Y")
+
+    # tenta hoje, depois ate 5 dias atras
+    for delta in range(0, 6):
+        d = agora - timedelta(days=delta)
+        data_str = d.strftime("%m-%d-%Y")
+        try:
+            resp = requests.get(base_url.format(data=data_str), timeout=15)
+            resp.raise_for_status()
+            dados = resp.json()
+            values = dados.get("value", [])
+            if values:
+                ultimo = values[-1]
+                return {
+                    "data_referencia": data_str,
+                    "cotacao_compra": ultimo.get("cotacaoCompra"),
+                    "cotacao_venda": ultimo.get("cotacaoVenda"),
+                    "data_hora": ultimo.get("dataHoraCotacao"),
+                    "tipo_boletim": ultimo.get("tipoBoletim"),
+                }
+        except Exception as e:
+            print(f"[PTAX] erro {data_str}: {e}")
+            continue
+
+    return None
 
 
-def get_wise_rate():
+def get_wise_rate() -> dict | None:
     """
-    Obtém taxa EUR/BRL da Wise (benchmark digital).
+    Obtem taxa EUR/BRL da Wise (benchmark digital).
     """
     url = "https://wise.com/rates/live?source=EUR&target=BRL"
-    
     try:
-        response = requests.get(url, headers={
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
-        }, timeout=15)
-        response.raise_for_status()
-        dados = response.json()
-        
+        resp = requests.get(url, headers=HEADERS_WISE, timeout=15)
+        resp.raise_for_status()
+        dados = resp.json()
         return {
             "rate": dados.get("value"),
             "timestamp": dados.get("time"),
             "source": "EUR",
-            "target": "BRL"
+            "target": "BRL",
         }
-    
     except Exception as e:
-        print(f"[Wise] Erro ao buscar taxa: {e}")
+        print(f"[Wise] erro: {e}")
         return None
 
 
 if __name__ == "__main__":
-    ptax = get_ptax_eur()
-    print(f"PTAX EUR/BRL: {ptax}")
-    
-    wise = get_wise_rate()
-    print(f"Wise EUR/BRL: {wise}")
+    print("PTAX:", get_ptax_eur())
+    print("Wise:", get_wise_rate())

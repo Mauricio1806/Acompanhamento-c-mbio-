@@ -1,101 +1,110 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor de Câmbio EUR/BRL - Salvador, BA</title>
-    <link rel="stylesheet" href="assets/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor de Câmbio EUR/BRL — Salvador</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>💱 Monitor EUR/BRL — Salvador, BA</h1>
-            <p class="subtitle">Cotações de Euro (espécie) nas casas de câmbio de Salvador</p>
-            <div id="last-update" class="last-update"></div>
-        </div>
-    </header>
+<header>
+  <div class="container">
+    <h1>💱 Monitor EUR/BRL — Salvador, BA</h1>
+    <p class="subtitle">Cotações de Euro (espécie) em casas de câmbio de Salvador</p>
+    <div id="last-update" class="last-update">Carregando…</div>
+  </div>
+</header>
 
-    <main class="container">
-        <!-- Controles -->
-        <section class="controls">
-            <div class="control-group">
-                <label for="volume-input">Volume (EUR):</label>
-                <input type="number" id="volume-input" value="5000" min="100" step="100">
-                <button onclick="recalcularRanking()">Recalcular</button>
-            </div>
-            <div class="control-group">
-                <label for="threshold-input">Alertar abaixo de (R$):</label>
-                <input type="number" id="threshold-input" step="0.01" placeholder="Ex: 6.30">
-                <button onclick="aplicarThreshold()">Aplicar</button>
-            </div>
-            <div class="control-group">
-                <label for="filtro-bairro">Bairro:</label>
-                <select id="filtro-bairro" onchange="filtrarTabela()">
-                    <option value="">Todos</option>
-                </select>
-                <label for="filtro-tipo">Tipo:</label>
-                <select id="filtro-tipo" onchange="filtrarTabela()">
-                    <option value="">Todos</option>
-                    <option value="casa_cambio">Casa de Câmbio</option>
-                    <option value="banco">Banco</option>
-                    <option value="aeroporto">Aeroporto</option>
-                    <option value="corretora">Corretora</option>
-                    <option value="dtvm">DTVM</option>
-                </select>
-            </div>
-        </section>
+<main class="container">
 
-        <!-- Top 3 Cards -->
-        <section class="top3-section">
-            <h2>🏆 Top 3 — Melhor Custo Efetivo</h2>
-            <div id="top3-cards" class="top3-cards"></div>
-        </section>
+  <section class="refs" id="refs-card">
+    <div class="ref"><span class="ref-label">PTAX (BCB)</span><span class="ref-value" id="ref-ptax">—</span></div>
+    <div class="ref"><span class="ref-label">Wise</span><span class="ref-value" id="ref-wise">—</span></div>
+    <div class="ref"><span class="ref-label">Menor 30d</span><span class="ref-value" id="ref-menor30">—</span></div>
+  </section>
 
-        <!-- Tabela Principal -->
-        <section class="table-section">
-            <h2>📊 Quadro Comparativo Completo</h2>
-            <div class="table-wrapper">
-                <table id="tabela-cotacoes">
-                    <thead>
-                        <tr>
-                            <th onclick="sortTable(0)">Casa de Câmbio ↕</th>
-                            <th onclick="sortTable(1)">Bairro ↕</th>
-                            <th onclick="sortTable(2)">Horário</th>
-                            <th onclick="sortTable(3)" class="num">Venda EUR (R$) ↕</th>
-                            <th onclick="sortTable(4)" class="num">Spread PTAX (%) ↕</th>
-                            <th onclick="sortTable(5)" class="num">Spread Wise (%) ↕</th>
-                            <th onclick="sortTable(6)" class="num">Custo Efetivo (R$) ↕</th>
-                            <th onclick="sortTable(7)" class="num">Variação ↕</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-body"></tbody>
-                </table>
-            </div>
-        </section>
+  <section class="controls">
+    <div class="control-group">
+      <label for="volume-input">Volume (EUR):</label>
+      <input type="number" id="volume-input" value="5000" min="100" step="100">
+      <button id="btn-recalcular">Recalcular</button>
+    </div>
+    <div class="control-group">
+      <label for="threshold-input">Alertar abaixo de (R$):</label>
+      <input type="number" id="threshold-input" step="0.01" placeholder="Ex: 6.30">
+      <button id="btn-threshold">Aplicar</button>
+    </div>
+    <div class="control-group">
+      <label for="filtro-bairro">Bairro:</label>
+      <select id="filtro-bairro"><option value="">Todos</option></select>
+      <label for="filtro-tipo">Tipo:</label>
+      <select id="filtro-tipo">
+        <option value="">Todos</option>
+        <option value="casa_cambio">Casa de Câmbio</option>
+        <option value="banco">Banco</option>
+        <option value="aeroporto">Aeroporto</option>
+        <option value="corretora">Corretora</option>
+        <option value="dtvm">DTVM</option>
+      </select>
+    </div>
+  </section>
 
-        <!-- Gráfico -->
-        <section class="chart-section">
-            <h2>📈 Série Temporal</h2>
-            <div class="chart-controls">
-                <button onclick="setChartPeriod(30)" class="active">30 dias</button>
-                <button onclick="setChartPeriod(60)">60 dias</button>
-                <button onclick="setChartPeriod(90)">90 dias</button>
-            </div>
-            <div class="chart-container">
-                <canvas id="chart-historico"></canvas>
-            </div>
-        </section>
-    </main>
+  <section class="top3-section">
+    <h2>🏆 Top 3 — Melhor Custo Efetivo</h2>
+    <div id="top3-cards" class="top3-cards"></div>
+  </section>
 
-    <footer>
-        <div class="container">
-            <p>Dados coletados automaticamente. IOF 1,1% incluso no custo efetivo. Valores para operação em espécie.</p>
-            <p>PTAX: taxa referência do Banco Central do Brasil | Wise: benchmark digital</p>
-        </div>
-    </footer>
+  <section class="volume-section">
+    <h2>💰 Custo Total por Volume <span id="volume-label" class="muted">(5.000 EUR)</span></h2>
+    <div id="volume-cards" class="volume-cards"></div>
+  </section>
 
-    <script src="assets/app.js"></script>
+  <section class="table-section">
+    <h2>📊 Quadro Comparativo</h2>
+    <div class="table-wrapper">
+      <table id="tabela-cotacoes">
+        <thead>
+          <tr>
+            <th data-sort="nome">Casa ↕</th>
+            <th data-sort="bairro">Bairro ↕</th>
+            <th>Horário</th>
+            <th data-sort="valor_venda_especie" class="num">Venda (R$) ↕</th>
+            <th data-sort="spread_ptax_pct" class="num">Spread PTAX % ↕</th>
+            <th data-sort="custo_efetivo" class="num">Custo Efetivo (R$) ↕</th>
+            <th data-sort="variacao_dia_anterior_pct" class="num">Δ dia ↕</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-body"></tbody>
+      </table>
+    </div>
+    <p class="footnote" id="empty-msg" hidden>
+      Nenhuma cotação coletada ainda hoje. A coleta automática roda às 10h e 16h (Brasília).
+    </p>
+  </section>
+
+  <section class="chart-section">
+    <h2>📈 Série Temporal</h2>
+    <div class="chart-controls">
+      <button data-period="30" class="active">30 dias</button>
+      <button data-period="60">60 dias</button>
+      <button data-period="90">90 dias</button>
+    </div>
+    <div class="chart-container">
+      <canvas id="chart-historico"></canvas>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>Dados coletados automaticamente. IOF 1,1% incluso no custo efetivo. Operação em espécie (notas físicas).</p>
+    <p>PTAX: Banco Central do Brasil • Wise: benchmark digital • Cotações: melhorcambio.com + entrada manual</p>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
 </body>
 </html>
