@@ -1,14 +1,14 @@
 {
   "meta": {
     "data_coleta": "2026-07-01",
-    "hora_atualizacao": "01:04:54",
-    "timestamp": "2026-07-01T01:04:54",
-    "total_casas": 25,
-    "casas_com_cotacao_hoje": 0,
+    "hora_atualizacao": "01:11:51",
+    "timestamp": "2026-07-01T01:11:51",
+    "total_casas": 26,
+    "casas_com_cotacao_hoje": 1,
     "casas_sem_cotacao_hoje": 25,
     "moeda": "EUR",
     "cidade": "Salvador/BA",
-    "menor_custo_30_dias": null
+    "menor_custo_30_dias": 6.4097
   },
   "cotacoes": [
     {
@@ -492,6 +492,40 @@
       "e_menor_30_dias": false,
       "fonte": null,
       "observacao": "Sem coleta hoje. Consulte pelo botao de WhatsApp/site."
+    },
+    {
+      "casa_slug": "melhorcambio-menor-valor-salvador-mc",
+      "nome": "MelhorCambio (menor valor Salvador)",
+      "cobertura": "auto_melhorcambio",
+      "endereco": "Salvador, BA (agregado do site)",
+      "bairro": null,
+      "tipo": "casa_cambio",
+      "horario": null,
+      "telefone": null,
+      "whatsapp": null,
+      "google_maps": null,
+      "cotacao_url": "https://www.melhorcambio.com/cotacao/compra/euro/salvador",
+      "formas_pagamento": [
+        "Pix",
+        "TED",
+        "Dinheiro"
+      ],
+      "agendamento_acima": 3000,
+      "valor_venda_especie": 6.34,
+      "valor_venda_cartao": 6.45,
+      "spread_ptax_pct": 7.26,
+      "spread_wise_pct": 7.74,
+      "iof_especie_pct": 1.0999999999999999,
+      "custo_efetivo": 6.4097,
+      "variacao_dia_anterior_rs": null,
+      "variacao_dia_anterior_pct": null,
+      "ptax_venda": 5.9106,
+      "wise_rate": 5.88429,
+      "hora_coleta": "01:11:14",
+      "sem_cotacao_hoje": false,
+      "e_menor_30_dias": true,
+      "fonte": "melhorcambio",
+      "observacao": "[ALERTA: spread >5.0% vs PTAX]"
     },
     {
       "casa_slug": "ourominas",

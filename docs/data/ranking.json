@@ -1,7 +1,7 @@
 {
   "meta": {
     "data": "2026-07-01",
-    "timestamp": "2026-07-01T01:04:54",
+    "timestamp": "2026-07-01T01:11:51",
     "volumes_referencia_eur": [
       5000,
       10000,
@@ -11,8 +11,52 @@
     "cidade": "Salvador/BA"
   },
   "ranking": {
-    "top3": [],
-    "completo": [],
-    "por_volume": {}
+    "top3": [
+      {
+        "posicao": 1,
+        "casa_slug": "melhorcambio-menor-valor-salvador-mc",
+        "nome": "MelhorCambio (menor valor Salvador)",
+        "custo_efetivo": 6.4097,
+        "valor_venda": 6.34,
+        "spread_ptax": 7.26
+      }
+    ],
+    "completo": [
+      {
+        "posicao": 1,
+        "casa_slug": "melhorcambio-menor-valor-salvador-mc",
+        "nome": "MelhorCambio (menor valor Salvador)",
+        "custo_efetivo": 6.4097
+      }
+    ],
+    "por_volume": {
+      "5000": [
+        {
+          "casa_slug": "melhorcambio-menor-valor-salvador-mc",
+          "nome": "MelhorCambio (menor valor Salvador)",
+          "custo_efetivo": 6.4097,
+          "custo_total": 32048.5,
+          "economia_vs_pior": 0.0
+        }
+      ],
+      "10000": [
+        {
+          "casa_slug": "melhorcambio-menor-valor-salvador-mc",
+          "nome": "MelhorCambio (menor valor Salvador)",
+          "custo_efetivo": 6.4097,
+          "custo_total": 64097.0,
+          "economia_vs_pior": 0.0
+        }
+      ],
+      "20000": [
+        {
+          "casa_slug": "melhorcambio-menor-valor-salvador-mc",
+          "nome": "MelhorCambio (menor valor Salvador)",
+          "custo_efetivo": 6.4097,
+          "custo_total": 128194.0,
+          "economia_vs_pior": 0.0
+        }
+      ]
+    }
   }
 }

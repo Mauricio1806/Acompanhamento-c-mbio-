@@ -1,10 +1,23 @@
 {
   "meta": {
     "periodo_dias": 90,
-    "total_registros": 0,
-    "data_inicio": null,
-    "data_fim": null,
-    "timestamp": "2026-07-01T01:04:54"
+    "total_registros": 1,
+    "data_inicio": "2026-07-01",
+    "data_fim": "2026-07-01",
+    "timestamp": "2026-07-01T01:11:51"
   },
-  "serie_temporal": []
+  "serie_temporal": [
+    {
+      "data": "2026-07-01",
+      "ptax": 5.9106,
+      "casas": {
+        "melhorcambio-menor-valor-salvador-mc": {
+          "nome": "MelhorCambio (menor valor Salvador)",
+          "valor_venda": 6.34,
+          "custo_efetivo": 6.4097,
+          "spread_ptax": 7.26
+        }
+      }
+    }
+  ]
 }
