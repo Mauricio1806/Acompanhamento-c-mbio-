@@ -1,10 +1,10 @@
 {
   "meta": {
     "periodo_dias": 90,
-    "total_registros": 3,
+    "total_registros": 4,
     "data_inicio": "2026-07-01",
     "data_fim": "2026-07-01",
-    "timestamp": "2026-07-01T15:46:50"
+    "timestamp": "2026-07-01T20:51:18"
   },
   "serie_temporal": [
     {
@@ -13,9 +13,9 @@
       "casas": {
         "melhorcambio-menor-valor-salvador-mc": {
           "nome": "MelhorCambio (menor valor Salvador)",
-          "valor_venda": 6.36,
-          "custo_efetivo": 6.43,
-          "spread_ptax": 7.19
+          "valor_venda": 6.37,
+          "custo_efetivo": 6.4401,
+          "spread_ptax": 7.7
         },
         "daycambio-shopping-bahia": {
           "nome": "DayCambio - Shopping da Bahia",
