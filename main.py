@@ -67,6 +67,19 @@ def processar_cotacao(
     casa_slug, valor_venda, ptax_venda, wise_rate, config,
     valor_cartao=None, fonte="scraping", observacao="", dry_run=False,
 ):
+    # SANITY CHECK: rejeita valores absurdos
+    if valor_venda is None or valor_venda <= 0:
+        print(f"  [{casa_slug}] REJEITADO: valor invalido ({valor_venda})")
+        return None
+    if ptax_venda and valor_venda < ptax_venda * 0.97:
+        # cotacao turismo NUNCA fica abaixo do PTAX (spread negativo > 3% e bug)
+        print(f"  [{casa_slug}] REJEITADO: valor R$ {valor_venda:.4f} abaixo do PTAX "
+              f"R$ {ptax_venda:.4f} (provavel scraping de outra moeda)")
+        return None
+    if valor_venda > 15.0 or valor_venda < 4.0:
+        print(f"  [{casa_slug}] REJEITADO: valor fora da faixa plausivel ({valor_venda})")
+        return None
+
     iof = config["iof"]["especie"]
 
     custo_efetivo = calcular_custo_efetivo(valor_venda, iof)

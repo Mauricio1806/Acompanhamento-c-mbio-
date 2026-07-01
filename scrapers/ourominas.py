@@ -2,12 +2,10 @@
 Scraper Ourominas (OM DTVM) via Playwright.
 URL: https://www.ourominas.com/cotacao-do-dia
 """
+import re
 from datetime import datetime
 
-from scrapers.playwright_base import (
-    browser_page, find_prices_in_range,
-    PLAYWRIGHT_AVAILABLE,
-)
+from scrapers.playwright_base import browser_page, PLAYWRIGHT_AVAILABLE
 
 
 URL = "https://www.ourominas.com/cotacao-do-dia"
@@ -28,9 +26,9 @@ def scrape_ourominas() -> dict:
         return resultado
 
     try:
-        with browser_page(headless=True, timeout_ms=30000) as page:
-            page.goto(URL, wait_until="domcontentloaded", timeout=35000)
-            page.wait_for_timeout(4000)
+        with browser_page(headless=True, timeout_ms=35000) as page:
+            page.goto(URL, wait_until="domcontentloaded", timeout=40000)
+            page.wait_for_timeout(6000)  # SPA - dar mais tempo
 
             texto = page.evaluate("document.body.innerText") or ""
             _parse(texto, resultado)
@@ -43,35 +41,44 @@ def scrape_ourominas() -> dict:
 
 def _parse(texto: str, resultado: dict):
     """
-    Ourominas tipicamente mostra tabela com Compra/Venda por moeda.
-    Estrutura esperada em texto: "EURO ... [compra] ... [venda]"
+    Ourominas mostra tabela: Moeda | Compra | Venda.
+    Procuramos linha 'EURO' ou 'EUR' seguida de 2 valores.
     """
-    import re
-
-    # tenta achar bloco EURO
-    m = re.search(
-        r"EURO[^\n]*\n?(?:[^0-9]{0,80}(\d{1,2}[.,]\d{2,4})[^0-9]{0,50}(\d{1,2}[.,]\d{2,4}))?",
-        texto, re.IGNORECASE | re.DOTALL,
+    # padrao 1: EURO em uma linha, valores nas linhas seguintes
+    padrao = re.compile(
+        r"(?:EURO|EUR)\b[\s\S]{0,150}?R?\$?\s*(\d{1,2}[.,]\d{2,4})[\s\S]{0,80}?R?\$?\s*(\d{1,2}[.,]\d{2,4})",
+        re.IGNORECASE,
     )
-    if m and m.group(1) and m.group(2):
+    for m in padrao.finditer(texto):
         try:
             v1 = float(m.group(1).replace(",", "."))
             v2 = float(m.group(2).replace(",", "."))
-            # convencao: compra < venda
-            if v1 < v2:
-                resultado["compra_eur_especie"] = v1
-                resultado["venda_eur_especie"] = v2
-            else:
-                resultado["compra_eur_especie"] = v2
-                resultado["venda_eur_especie"] = v1
+            # ambos precisam ser plausiveis EUR/BRL
+            if 5.00 <= v1 <= 10.0 and 5.00 <= v2 <= 10.0:
+                # convencao: compra < venda
+                if v1 < v2:
+                    resultado["compra_eur_especie"] = v1
+                    resultado["venda_eur_especie"] = v2
+                else:
+                    resultado["compra_eur_especie"] = v2
+                    resultado["venda_eur_especie"] = v1
+                return
         except ValueError:
-            pass
+            continue
 
-    # fallback: se so tem 1 valor plausivel, assume que e venda turismo
-    if resultado["venda_eur_especie"] is None:
-        vals = find_prices_in_range(texto, lo=5.5, hi=10.0)
-        if vals:
-            resultado["venda_eur_especie"] = vals[0]
+    # fallback: EURO + 1 valor plausivel de turismo
+    padrao2 = re.compile(
+        r"(?:EURO|EUR)\b[\s\S]{0,120}?R?\$?\s*(\d{1,2}[.,]\d{2,4})",
+        re.IGNORECASE,
+    )
+    for m in padrao2.finditer(texto):
+        try:
+            v = float(m.group(1).replace(",", "."))
+            if 5.80 <= v <= 9.50:
+                resultado["venda_eur_especie"] = v
+                return
+        except ValueError:
+            continue
 
 
 if __name__ == "__main__":

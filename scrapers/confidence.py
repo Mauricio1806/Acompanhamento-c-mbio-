@@ -1,19 +1,14 @@
 """
 Scraper Confidence Cambio (Travelex) via Playwright.
 
-A pagina /ecommerce/ e SPA. Mostra:
-- Cambio comercial de referencia
-- VET (Valor Efetivo Total) para EUR - ja inclui IOF
-- Permite escolher moeda entre Dolar/Euro/Libra/etc
-
-Estrategia: entra na pagina, seleciona EUR (se possivel), pega o VET.
+Estrategia: acessa a pagina, tenta trocar pra EUR, e VALIDA que o valor
+extraido e realmente de EUR (nao Dolar). Se nao conseguir validar, retorna
+vazio em vez de retornar valor errado.
 """
+import re
 from datetime import datetime
 
-from scrapers.playwright_base import (
-    browser_page, find_prices_in_range,
-    PLAYWRIGHT_AVAILABLE,
-)
+from scrapers.playwright_base import browser_page, PLAYWRIGHT_AVAILABLE
 
 
 URL = "https://www.confidencecambio.com.br/ecommerce/"
@@ -24,8 +19,8 @@ def scrape_confidence() -> dict:
         "fonte": "confidence",
         "url": URL,
         "timestamp": datetime.now().isoformat(),
-        "cambio_comercial": None,
-        "vet_eur": None,          # valor efetivo total EUR (com IOF)
+        "vet_eur": None,
+        "cambio_comercial_eur": None,
         "erro": None,
     }
 
@@ -34,18 +29,18 @@ def scrape_confidence() -> dict:
         return resultado
 
     try:
-        with browser_page(headless=True, timeout_ms=30000) as page:
-            page.goto(URL, wait_until="domcontentloaded", timeout=35000)
-            page.wait_for_timeout(4000)  # espera SPA renderizar
+        with browser_page(headless=True, timeout_ms=35000) as page:
+            page.goto(URL, wait_until="domcontentloaded", timeout=40000)
+            page.wait_for_timeout(5000)
 
-            # tenta selecionar EUR (dropdown ou botao)
-            _tentar_selecionar_eur(page)
-            page.wait_for_timeout(2500)
+            # tenta trocar pra EUR - varias estrategias
+            trocado = _trocar_para_eur(page)
+            page.wait_for_timeout(3500)
 
             texto = page.evaluate("document.body.innerText") or ""
 
-            # extrai valores
-            _parse(texto, resultado)
+            # so aceita valor se conseguiu confirmar EUR
+            _parse_com_validacao(texto, resultado, eur_confirmado=trocado)
 
     except Exception as e:
         resultado["erro"] = f"erro playwright: {e}"
@@ -53,63 +48,93 @@ def scrape_confidence() -> dict:
     return resultado
 
 
-def _tentar_selecionar_eur(page):
-    """Tenta clicar em EUR se houver seletor de moeda."""
-    # varias estrategias de seleção
-    for seletor in [
-        "text=EUR",
-        "text=Euro",
-        "[data-currency='EUR']",
-        "[value='EUR']",
+def _trocar_para_eur(page) -> bool:
+    """Retorna True se conseguiu efetivamente selecionar EUR."""
+    # tenta seletores comuns
+    seletores = [
+        # dropdown/select
+        "select[name*='moeda' i] option[value*='EUR' i]",
+        "select[name*='currency' i] option[value*='EUR' i]",
+        # botoes com texto
         "button:has-text('EUR')",
-    ]:
+        "button:has-text('Euro')",
+        # links
+        "a:has-text('EUR')",
+        "a:has-text('Euro')",
+        # divs clicaveis
+        "[data-currency='EUR']",
+        "[data-moeda='EUR']",
+    ]
+    for sel in seletores:
         try:
-            el = page.query_selector(seletor)
+            el = page.query_selector(sel)
             if el:
-                el.click(timeout=3000)
+                el.click(timeout=3000, force=True)
+                page.wait_for_timeout(1500)
                 return True
         except Exception:
             continue
-    return False
+
+    # fallback: usar evaluate pra clicar em elemento com texto "EUR"
+    try:
+        clicked = page.evaluate("""
+            () => {
+              const nodes = Array.from(document.querySelectorAll('button, a, [role=button], div[class*=currency], div[class*=moeda]'));
+              const match = nodes.find(n => /\\bEUR\\b|\\bEuro\\b/i.test(n.innerText || ''));
+              if (match) { match.click(); return true; }
+              return false;
+            }
+        """)
+        return bool(clicked)
+    except Exception:
+        return False
 
 
-def _parse(texto: str, resultado: dict):
+def _parse_com_validacao(texto: str, resultado: dict, eur_confirmado: bool):
     """
-    Procura por padrões:
-    - "Câmbio comercial: R$ X,XX"
-    - "VET: R$ X,XX"
+    So aceita valores se:
+    - o texto contem contexto claro de EUR proximo do valor
+    - OR conseguimos confirmar troca de moeda
     """
-    import re
-
-    m = re.search(r"[Cc][âa]mbio\s+comercial[:\s]+R\$?\s*(\d{1,2}[.,]\d{2,4})", texto)
+    # busca especificamente "Euro" ou "EUR" acompanhado de valor
+    # padrao: "Euro ... VET: R$ X,XX"
+    padrao_eur_vet = re.compile(
+        r"(?:EUR|Euro)[\s\S]{0,300}?VET[:\s]+R?\$?\s*(\d{1,2}[.,]\d{2,4})",
+        re.IGNORECASE,
+    )
+    m = padrao_eur_vet.search(texto)
     if m:
-        val = m.group(1).replace(",", ".")
         try:
-            resultado["cambio_comercial"] = float(val)
+            resultado["vet_eur"] = float(m.group(1).replace(",", "."))
         except ValueError:
             pass
 
-    m = re.search(r"VET[:\s]+R\$?\s*(\d{1,2}[.,]\d{2,4})", texto)
-    if m:
-        val = m.group(1).replace(",", ".")
+    # comercial EUR
+    padrao_eur_com = re.compile(
+        r"(?:EUR|Euro)[\s\S]{0,200}?[Cc][âa]mbio\s+comercial[:\s]+R?\$?\s*(\d{1,2}[.,]\d{2,4})",
+        re.IGNORECASE,
+    )
+    m2 = padrao_eur_com.search(texto)
+    if m2:
         try:
-            resultado["vet_eur"] = float(val)
+            resultado["cambio_comercial_eur"] = float(m2.group(1).replace(",", "."))
         except ValueError:
             pass
 
-    # fallback: se nao pegou VET explicito, pega o maior valor entre 5-10 (deve ser turismo)
-    if resultado["vet_eur"] is None:
-        vals = find_prices_in_range(texto, lo=5.5, hi=10.0)
-        # filtra valores muito baixos (comercial) e pega o maior plausivel
-        turismo = [v for v in vals if v > 5.5]
-        if turismo:
-            # se comercial esta definido, pega o primeiro valor acima dele
-            if resultado["cambio_comercial"]:
-                acima = [v for v in turismo if v > resultado["cambio_comercial"] + 0.3]
-                if acima:
-                    resultado["vet_eur"] = acima[0]
-            else:
-                resultado["vet_eur"] = turismo[0]
+    # Se nao achou por proximidade, so aceita valor generico se
+    # confirmamos que EUR foi selecionado E o valor esta na faixa EUR/BRL
+    # (EUR turismo geralmente > 5.80 no periodo atual)
+    if resultado["vet_eur"] is None and eur_confirmado:
+        m3 = re.search(r"VET[:\s]+R?\$?\s*(\d{1,2}[.,]\d{2,4})", texto)
+        if m3:
+            try:
+                v = float(m3.group(1).replace(",", "."))
+                # EUR turismo em Salvador esta na faixa 6.00-8.00
+                # se estiver abaixo de 5.80 quase certeza que e USD
+                if v >= 5.80:
+                    resultado["vet_eur"] = v
+            except ValueError:
+                pass
 
 
 if __name__ == "__main__":
