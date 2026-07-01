@@ -2,20 +2,17 @@
 """
 Monitor de Cambio EUR/BRL - Salvador, BA.
 
-Pipeline completo executado por padrao (sem argumentos):
+Pipeline completo (execucao default):
 1. Inicializa banco e cadastra casas do config.yaml
 2. Coleta PTAX (BCB) + Wise como referencias
-3. Faz scraping do MelhorCambio (cotacoes reais de Salvador)
-4. Importa cotacoes manuais (data/manual_quotes.json) se existir
+3. Faz scraping via Playwright de:
+   - MelhorCambio Salvador
+   - Confidence/Travelex (VET EUR)
+   - DayCambio (VET EUR)
+   - Ourominas
+4. Importa cotacoes manuais (data/manual_quotes.json)
 5. Calcula custo efetivo, spreads, variacao
-6. Salva no SQLite e gera JSONs estaticos pro dashboard
-
-Uso:
-    python main.py                  # Pipeline completo (default)
-    python main.py --init           # So inicializa banco
-    python main.py --build-json     # So regenera JSONs do dia
-    python main.py --vacuum         # Limpa historico antigo + vacuum
-    python main.py --dry-run        # Coleta e mostra sem salvar
+6. Salva no SQLite e gera JSONs para o dashboard
 """
 import argparse
 import json
@@ -37,15 +34,12 @@ from core.calculator import (
 )
 from core.builder import build_all
 from scrapers.bcb_ptax import get_ptax_eur, get_wise_rate
-from scrapers.melhorcambio import scrape_melhorcambio_salvador
 
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(ROOT_DIR, "config.yaml")
 MANUAL_QUOTES_PATH = os.path.join(ROOT_DIR, "data", "manual_quotes.json")
 
-
-# ---------- config ----------
 
 def load_config() -> dict:
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
@@ -59,8 +53,6 @@ def init_casas_from_config(config: dict):
     print(f"[OK] {len(casas)} casas cadastradas no banco.")
 
 
-# ---------- coleta de referencias ----------
-
 def coletar_referencias() -> tuple[float | None, float | None]:
     ptax = get_ptax_eur()
     wise = get_wise_rate()
@@ -71,16 +63,10 @@ def coletar_referencias() -> tuple[float | None, float | None]:
     return ptax_venda, wise_rate
 
 
-# ---------- processamento ----------
-
 def processar_cotacao(
-    casa_slug: str, valor_venda: float, ptax_venda: float | None,
-    wise_rate: float | None, config: dict,
-    valor_cartao: float | None = None,
-    fonte: str = "scraping", observacao: str = "",
-    dry_run: bool = False,
-) -> dict:
-    """Calcula, persiste (se nao dry-run) e retorna a linha de cotacao."""
+    casa_slug, valor_venda, ptax_venda, wise_rate, config,
+    valor_cartao=None, fonte="scraping", observacao="", dry_run=False,
+):
     iof = config["iof"]["especie"]
 
     custo_efetivo = calcular_custo_efetivo(valor_venda, iof)
@@ -92,9 +78,9 @@ def processar_cotacao(
     if ultima and ultima.get("valor_venda_especie"):
         var_rs, var_pct = calcular_variacao(valor_venda, ultima["valor_venda_especie"])
 
-    if verificar_discrepancia(valor_venda, ptax_venda, config.get("max_spread_ptax", 3.0)):
+    if verificar_discrepancia(valor_venda, ptax_venda, config.get("max_spread_ptax", 5.0)):
         observacao = (observacao + " " if observacao else "") + \
-            f"[ALERTA: spread >{config.get('max_spread_ptax', 3.0)}% vs PTAX]"
+            f"[ALERTA: spread >{config.get('max_spread_ptax', 5.0)}% vs PTAX]"
 
     agora = datetime.now()
     row = {
@@ -119,136 +105,189 @@ def processar_cotacao(
     if not dry_run:
         insert_cotacao(row)
 
-    print(f"  [{casa_slug:35s}] venda R$ {valor_venda:.4f} | "
+    print(f"  [{casa_slug:38s}] venda R$ {valor_venda:.4f} | "
           f"efetivo R$ {custo_efetivo:.4f} | spread PTAX {spread_ptax}%")
     return row
 
 
-# ---------- coleta MelhorCambio ----------
+def _safe_scrape(nome, fn):
+    try:
+        return fn()
+    except Exception as e:
+        print(f"[{nome}] ERRO: {e}")
+        return {"erro": str(e)}
 
-def coletar_melhorcambio(config: dict, ptax: float | None, wise: float | None,
-                         dry_run: bool = False) -> int:
-    """
-    Faz scraping do MelhorCambio Salvador. As cotacoes encontradas sao
-    mapeadas para casas ja cadastradas no config.yaml pelo slug ou,
-    se nao houver match, cadastradas com sufixo -mc.
-    """
+
+def coletar_melhorcambio(config, ptax, wise, dry_run) -> int:
+    from scrapers.melhorcambio import scrape_melhorcambio_salvador
     print("\n[MelhorCambio] iniciando scraping...")
-    dados = scrape_melhorcambio_salvador()
-
+    dados = _safe_scrape("MelhorCambio", scrape_melhorcambio_salvador)
     if dados.get("erro"):
-        print(f"[MelhorCambio] ERRO: {dados['erro']}")
+        print(f"[MelhorCambio] falhou: {dados['erro']}")
         return 0
 
-    print(f"[MelhorCambio] referencias: comercial={dados['cambio_comercial']} "
-          f"papel_moeda_menor={dados['papel_moeda_menor']} "
-          f"cartao_menor={dados['cartao_prepago_menor']}")
-    print(f"[MelhorCambio] casas encontradas: {dados['casas_count']}")
-
-    # mapeia nome da casa para slug ja existente no config
-    slugs_existentes = {c["slug"]: c for c in config.get("casas_cambio", [])}
-    nome_to_slug = {}
-    for c in config.get("casas_cambio", []):
-        nome_lower = c["nome"].lower()
-        nome_to_slug[nome_lower] = c["slug"]
-        # match parcial: "Salvador Cambio" -> qualquer slug que contenha "salvador-cambio"
-        for palavra in ["salvador cambio", "salvador câmbio"]:
-            if palavra in nome_lower:
-                nome_to_slug[palavra] = c["slug"]
+    print(f"[MelhorCambio] comercial={dados.get('cambio_comercial')} "
+          f"papel_menor={dados.get('papel_moeda_menor')} "
+          f"casas={dados.get('casas_count', 0)}")
 
     processadas = 0
-    for casa in dados["casas"]:
-        nome_lower = casa["nome"].lower()
-        # tenta match
-        slug = None
-        for nome_ref, slug_ref in nome_to_slug.items():
-            if nome_ref in nome_lower or nome_lower in nome_ref:
-                slug = slug_ref
-                break
+    slugs_map = _mapear_slugs(config)
+
+    for casa in dados.get("casas") or []:
+        slug = _match_slug(casa.get("nome", ""), slugs_map)
         if not slug:
-            # nao tem cadastro - cria com sufixo -mc
-            slug = casa["slug"]
-            if not dry_run and slug not in slugs_existentes:
+            import re
+            base = re.sub(r"[^a-z0-9]+", "-", casa["nome"].lower()).strip("-")
+            slug = f"{base}-mc"
+            if not dry_run:
                 upsert_casa_cambio({
-                    "slug": slug,
-                    "nome": casa["nome"],
+                    "slug": slug, "nome": casa["nome"],
                     "cobertura": "auto_melhorcambio",
-                    "url": dados["url"],
-                    "cotacao_url": dados["url"],
+                    "url": dados["url"], "cotacao_url": dados["url"],
                     "endereco": casa.get("endereco") or "Salvador, BA",
-                    "bairro": None,
-                    "tipo": "casa_cambio",
-                    "horario": casa.get("horario"),
-                    "telefone": None,
-                    "whatsapp": None,
-                    "google_maps": _gerar_google_maps(casa["nome"], casa.get("endereco")),
+                    "bairro": None, "tipo": "casa_cambio",
+                    "horario": None, "telefone": None, "whatsapp": None,
+                    "google_maps": None,
                     "formas_pagamento": ["Pix", "TED", "Dinheiro"],
                     "agendamento_acima": 3000,
                 })
 
         if casa.get("valor_venda_especie"):
             processar_cotacao(
-                casa_slug=slug,
-                valor_venda=casa["valor_venda_especie"],
-                ptax_venda=ptax,
-                wise_rate=wise,
-                config=config,
+                slug, casa["valor_venda_especie"], ptax, wise, config,
                 valor_cartao=casa.get("valor_venda_cartao"),
                 fonte="melhorcambio",
-                observacao=(f"correspondente: {casa['correspondente']}"
-                            if casa.get("correspondente") else ""),
+                observacao=f"corresp: {casa['correspondente']}" if casa.get("correspondente") else "",
                 dry_run=dry_run,
             )
             processadas += 1
 
+    # fallback agregado
+    if processadas == 0 and dados.get("papel_moeda_menor"):
+        slug = "melhorcambio-agregado"
+        if not dry_run:
+            upsert_casa_cambio({
+                "slug": slug,
+                "nome": "MelhorCambio (menor valor Salvador)",
+                "cobertura": "auto_melhorcambio",
+                "url": dados["url"], "cotacao_url": dados["url"],
+                "endereco": "Salvador, BA (menor valor listado)",
+                "bairro": "Diversos", "tipo": "online",
+                "horario": None, "telefone": None, "whatsapp": None,
+                "google_maps": None,
+                "formas_pagamento": ["Pix", "TED", "Dinheiro"],
+                "agendamento_acima": 3000,
+            })
+        processar_cotacao(
+            slug, dados["papel_moeda_menor"], ptax, wise, config,
+            valor_cartao=dados.get("cartao_prepago_menor"),
+            fonte="melhorcambio", observacao="menor valor no site",
+            dry_run=dry_run,
+        )
+        processadas += 1
+
     return processadas
 
 
-def _extrair_bairro(endereco: str) -> str | None:
-    if not endereco:
-        return None
-    import re
-    m = re.search(r",\s*([A-ZÀ-Ú][A-Za-zÀ-ú\s]{2,40}?)\s*[,-]\s*Salvador", endereco)
-    if m:
-        return m.group(1).strip()
+def coletar_confidence(config, ptax, wise, dry_run) -> int:
+    from scrapers.confidence import scrape_confidence
+    print("\n[Confidence] iniciando scraping...")
+    dados = _safe_scrape("Confidence", scrape_confidence)
+    if dados.get("erro") or not dados.get("vet_eur"):
+        print(f"[Confidence] sem cotacao ({dados.get('erro') or 'vet nao encontrado'})")
+        return 0
+
+    print(f"[Confidence] VET EUR: {dados['vet_eur']}")
+
+    slugs = [c["slug"] for c in config.get("casas_cambio", [])
+             if c["slug"].startswith("confidence-")]
+
+    valor = dados["vet_eur"]
+    iof = config["iof"]["especie"]
+    valor_sem_iof = round(valor / (1 + iof), 4)
+
+    processadas = 0
+    for slug in slugs:
+        processar_cotacao(
+            slug, valor_sem_iof, ptax, wise, config,
+            fonte="confidence_site",
+            observacao=f"VET original {valor}",
+            dry_run=dry_run,
+        )
+        processadas += 1
+    return processadas
+
+
+def coletar_daycambio(config, ptax, wise, dry_run) -> int:
+    from scrapers.daycambio import scrape_daycambio
+    print("\n[DayCambio] iniciando scraping...")
+    dados = _safe_scrape("DayCambio", scrape_daycambio)
+    if dados.get("erro") or not dados.get("vet_eur"):
+        print(f"[DayCambio] sem cotacao ({dados.get('erro') or 'vet nao encontrado'})")
+        return 0
+
+    print(f"[DayCambio] VET EUR: {dados['vet_eur']}")
+    valor = dados["vet_eur"]
+    iof = config["iof"]["especie"]
+    valor_sem_iof = round(valor / (1 + iof), 4)
+
+    processar_cotacao(
+        "daycambio-shopping-bahia", valor_sem_iof, ptax, wise, config,
+        fonte="daycambio_site",
+        observacao=f"VET original {valor}",
+        dry_run=dry_run,
+    )
+    return 1
+
+
+def coletar_ourominas(config, ptax, wise, dry_run) -> int:
+    from scrapers.ourominas import scrape_ourominas
+    print("\n[Ourominas] iniciando scraping...")
+    dados = _safe_scrape("Ourominas", scrape_ourominas)
+    if dados.get("erro") or not dados.get("venda_eur_especie"):
+        print(f"[Ourominas] sem cotacao ({dados.get('erro') or 'venda nao encontrada'})")
+        return 0
+
+    valor = dados["venda_eur_especie"]
+    print(f"[Ourominas] venda EUR: {valor}")
+    processar_cotacao(
+        "ourominas", valor, ptax, wise, config,
+        fonte="ourominas_site", dry_run=dry_run,
+    )
+    return 1
+
+
+def _mapear_slugs(config: dict) -> dict:
+    m = {}
+    for c in config.get("casas_cambio", []):
+        m[c["nome"].lower()] = c["slug"]
+        for token in c["nome"].lower().split(" - "):
+            m[token.strip()] = c["slug"]
+    return m
+
+
+def _match_slug(nome, mapa) -> str | None:
+    nome_l = nome.lower()
+    for chave, slug in mapa.items():
+        if len(chave) < 5:
+            continue
+        if chave in nome_l or nome_l in chave:
+            return slug
     return None
 
 
-def _gerar_google_maps(nome: str, endereco: str | None) -> str:
-    query = nome
-    if endereco:
-        query = f"{nome} {endereco}"
-    import urllib.parse
-    return f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(query)}"
-
-
-# ---------- coleta manual (PR-based) ----------
-
-def importar_manual(config: dict, ptax: float | None, wise: float | None,
-                    dry_run: bool = False) -> int:
-    """
-    Le data/manual_quotes.json (commit manual ou via PR) com cotacoes que o
-    scraper nao consegue automatizar (casas que so cotam via WhatsApp etc).
-
-    Formato:
-    [
-      {"casa_slug": "confidence-shopping-barra", "valor_venda_especie": 6.42,
-       "valor_venda_cartao": 6.55, "observacao": "consultado via WhatsApp"}
-    ]
-    """
+def importar_manual(config, ptax, wise, dry_run) -> int:
     if not os.path.exists(MANUAL_QUOTES_PATH):
         print("\n[Manual] data/manual_quotes.json nao encontrado (pulando).")
         return 0
-
     try:
         with open(MANUAL_QUOTES_PATH, "r", encoding="utf-8") as f:
             entradas = json.load(f)
     except Exception as e:
-        print(f"[Manual] erro lendo manual_quotes.json: {e}")
+        print(f"[Manual] erro lendo arquivo: {e}")
         return 0
-
     if not isinstance(entradas, list) or not entradas:
-        print("[Manual] arquivo vazio ou formato invalido (pulando).")
+        print("[Manual] vazio ou formato invalido.")
         return 0
 
     print(f"\n[Manual] processando {len(entradas)} cotacoes manuais...")
@@ -259,11 +298,7 @@ def importar_manual(config: dict, ptax: float | None, wise: float | None,
         if not slug or not valor:
             continue
         processar_cotacao(
-            casa_slug=slug,
-            valor_venda=float(valor),
-            ptax_venda=ptax,
-            wise_rate=wise,
-            config=config,
+            slug, float(valor), ptax, wise, config,
             valor_cartao=item.get("valor_venda_cartao"),
             fonte=item.get("fonte", "manual"),
             observacao=item.get("observacao", ""),
@@ -273,39 +308,38 @@ def importar_manual(config: dict, ptax: float | None, wise: float | None,
     return count
 
 
-# ---------- pipeline ----------
-
-def pipeline(dry_run: bool = False):
-    """Pipeline completo: init -> referencias -> scraping -> manual -> build."""
+def pipeline(dry_run: bool = False, skip_scraping: bool = False):
     config = load_config()
     init_db()
     init_casas_from_config(config)
 
     ptax, wise = coletar_referencias()
 
-    n_mc = coletar_melhorcambio(config, ptax, wise, dry_run=dry_run)
-    n_man = importar_manual(config, ptax, wise, dry_run=dry_run)
+    totais = {"melhorcambio": 0, "confidence": 0, "daycambio": 0, "ourominas": 0, "manual": 0}
 
-    print(f"\n[Total] {n_mc + n_man} cotacoes processadas "
-          f"({n_mc} via MelhorCambio + {n_man} manuais).")
+    if not skip_scraping:
+        totais["melhorcambio"] = coletar_melhorcambio(config, ptax, wise, dry_run)
+        totais["confidence"]   = coletar_confidence(config, ptax, wise, dry_run)
+        totais["daycambio"]    = coletar_daycambio(config, ptax, wise, dry_run)
+        totais["ourominas"]    = coletar_ourominas(config, ptax, wise, dry_run)
+
+    totais["manual"] = importar_manual(config, ptax, wise, dry_run)
+
+    total = sum(totais.values())
+    print(f"\n[Total] {total} cotacoes processadas | {totais}")
 
     if not dry_run:
         arquivos = build_all()
         print(f"[OK] JSONs gerados: {list(arquivos.keys())}")
-    else:
-        print("[DRY RUN] nada gravado e JSONs nao regerados.")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Monitor Cambio EUR/BRL Salvador")
-    parser.add_argument("--init", action="store_true",
-                        help="So inicializa banco e cadastra casas")
-    parser.add_argument("--build-json", action="store_true",
-                        help="So regenera JSONs a partir do banco")
-    parser.add_argument("--vacuum", action="store_true",
-                        help="Remove historico antigo e compacta banco")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Coleta e mostra mas nao salva nada")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--init", action="store_true")
+    parser.add_argument("--build-json", action="store_true")
+    parser.add_argument("--vacuum", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--no-scrape", action="store_true")
     args = parser.parse_args()
 
     if args.init:
@@ -329,7 +363,7 @@ def main():
         print("[OK] vacuum concluido.")
         return
 
-    pipeline(dry_run=args.dry_run)
+    pipeline(dry_run=args.dry_run, skip_scraping=args.no_scrape)
 
 
 if __name__ == "__main__":
