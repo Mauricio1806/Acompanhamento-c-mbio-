@@ -1,7 +1,7 @@
 {
   "meta": {
     "data": "2026-07-01",
-    "timestamp": "2026-07-01T01:11:51",
+    "timestamp": "2026-07-01T15:46:50",
     "volumes_referencia_eur": [
       5000,
       10000,
@@ -14,46 +14,81 @@
     "top3": [
       {
         "posicao": 1,
+        "casa_slug": "daycambio-shopping-bahia",
+        "nome": "DayCambio - Shopping da Bahia",
+        "custo_efetivo": 6.4,
+        "valor_venda": 6.3304,
+        "spread_ptax": 6.69
+      },
+      {
+        "posicao": 2,
         "casa_slug": "melhorcambio-menor-valor-salvador-mc",
         "nome": "MelhorCambio (menor valor Salvador)",
-        "custo_efetivo": 6.4097,
-        "valor_venda": 6.34,
-        "spread_ptax": 7.26
+        "custo_efetivo": 6.43,
+        "valor_venda": 6.36,
+        "spread_ptax": 7.19
       }
     ],
     "completo": [
       {
         "posicao": 1,
+        "casa_slug": "daycambio-shopping-bahia",
+        "nome": "DayCambio - Shopping da Bahia",
+        "custo_efetivo": 6.4
+      },
+      {
+        "posicao": 2,
         "casa_slug": "melhorcambio-menor-valor-salvador-mc",
         "nome": "MelhorCambio (menor valor Salvador)",
-        "custo_efetivo": 6.4097
+        "custo_efetivo": 6.43
       }
     ],
     "por_volume": {
       "5000": [
         {
+          "casa_slug": "daycambio-shopping-bahia",
+          "nome": "DayCambio - Shopping da Bahia",
+          "custo_efetivo": 6.4,
+          "custo_total": 32000.0,
+          "economia_vs_pior": 150.0
+        },
+        {
           "casa_slug": "melhorcambio-menor-valor-salvador-mc",
           "nome": "MelhorCambio (menor valor Salvador)",
-          "custo_efetivo": 6.4097,
-          "custo_total": 32048.5,
+          "custo_efetivo": 6.43,
+          "custo_total": 32150.0,
           "economia_vs_pior": 0.0
         }
       ],
       "10000": [
         {
+          "casa_slug": "daycambio-shopping-bahia",
+          "nome": "DayCambio - Shopping da Bahia",
+          "custo_efetivo": 6.4,
+          "custo_total": 64000.0,
+          "economia_vs_pior": 300.0
+        },
+        {
           "casa_slug": "melhorcambio-menor-valor-salvador-mc",
           "nome": "MelhorCambio (menor valor Salvador)",
-          "custo_efetivo": 6.4097,
-          "custo_total": 64097.0,
+          "custo_efetivo": 6.43,
+          "custo_total": 64300.0,
           "economia_vs_pior": 0.0
         }
       ],
       "20000": [
         {
+          "casa_slug": "daycambio-shopping-bahia",
+          "nome": "DayCambio - Shopping da Bahia",
+          "custo_efetivo": 6.4,
+          "custo_total": 128000.0,
+          "economia_vs_pior": 600.0
+        },
+        {
           "casa_slug": "melhorcambio-menor-valor-salvador-mc",
           "nome": "MelhorCambio (menor valor Salvador)",
-          "custo_efetivo": 6.4097,
-          "custo_total": 128194.0,
+          "custo_efetivo": 6.43,
+          "custo_total": 128600.0,
           "economia_vs_pior": 0.0
         }
       ]
