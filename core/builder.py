@@ -11,6 +11,7 @@ from datetime import datetime
 
 from core.db import (
     get_cotacoes_dia, get_historico, get_menor_custo_30_dias,
+    get_todas_casas, get_ultima_cotacao_data,
 )
 from core.calculator import gerar_ranking
 
@@ -30,32 +31,31 @@ def build_latest_json(data: str | None = None) -> str:
     if data is None:
         data = datetime.now().strftime("%Y-%m-%d")
 
-    cotacoes = get_cotacoes_dia(data)
+    cotacoes_hoje = {c["casa_slug"]: c for c in get_cotacoes_dia(data)}
+    todas_casas = get_todas_casas()
     menor_30 = get_menor_custo_30_dias()
 
-    payload = {
-        "meta": {
-            "data_coleta": data,
-            "hora_atualizacao": datetime.now().strftime("%H:%M:%S"),
-            "timestamp": datetime.now().isoformat(timespec="seconds"),
-            "total_casas": len(cotacoes),
-            "moeda": "EUR",
-            "cidade": "Salvador/BA",
-            "menor_custo_30_dias": menor_30,
-        },
-        "cotacoes": [
-            {
-                "casa_slug": c["casa_slug"],
-                "nome": c.get("nome"),
-                "endereco": c.get("endereco"),
-                "bairro": c.get("bairro"),
-                "tipo": c.get("tipo"),
-                "horario": c.get("horario"),
-                "telefone": c.get("telefone"),
-                "whatsapp": c.get("whatsapp"),
-                "google_maps": c.get("google_maps"),
-                "formas_pagamento": (c.get("formas_pagamento") or "").split(",") if c.get("formas_pagamento") else [],
-                "agendamento_acima": c.get("agendamento_acima"),
+    cotacoes_payload = []
+    for casa in todas_casas:
+        slug = casa["slug"]
+        c = cotacoes_hoje.get(slug)
+
+        if c:
+            # tem cotacao hoje
+            entry = {
+                "casa_slug": slug,
+                "nome": c.get("nome") or casa.get("nome"),
+                "cobertura": casa.get("cobertura"),
+                "endereco": casa.get("endereco"),
+                "bairro": casa.get("bairro"),
+                "tipo": casa.get("tipo"),
+                "horario": casa.get("horario"),
+                "telefone": casa.get("telefone"),
+                "whatsapp": casa.get("whatsapp"),
+                "google_maps": casa.get("google_maps"),
+                "cotacao_url": casa.get("cotacao_url"),
+                "formas_pagamento": (casa.get("formas_pagamento") or "").split(",") if casa.get("formas_pagamento") else [],
+                "agendamento_acima": casa.get("agendamento_acima"),
                 "valor_venda_especie": c.get("valor_venda_especie"),
                 "valor_venda_cartao": c.get("valor_venda_cartao"),
                 "spread_ptax_pct": c.get("spread_ptax"),
@@ -65,17 +65,67 @@ def build_latest_json(data: str | None = None) -> str:
                 "variacao_dia_anterior_rs": c.get("variacao_dia_anterior"),
                 "variacao_dia_anterior_pct": c.get("variacao_pct_dia_anterior"),
                 "ptax_venda": c.get("ptax_venda"),
+                "wise_rate": c.get("wise_rate"),
                 "hora_coleta": c.get("hora"),
+                "sem_cotacao_hoje": False,
                 "e_menor_30_dias": (
-                    menor_30 is not None
-                    and c.get("custo_efetivo") is not None
+                    menor_30 is not None and c.get("custo_efetivo") is not None
                     and abs(c["custo_efetivo"] - menor_30) < 1e-6
                 ),
                 "fonte": c.get("fonte"),
                 "observacao": c.get("observacao"),
             }
-            for c in cotacoes
-        ],
+        else:
+            # sem cotacao hoje - mostra ultima conhecida (se houver) + dados cadastrais
+            ultima = get_ultima_cotacao_data(slug)
+            entry = {
+                "casa_slug": slug,
+                "nome": casa.get("nome"),
+                "cobertura": casa.get("cobertura"),
+                "endereco": casa.get("endereco"),
+                "bairro": casa.get("bairro"),
+                "tipo": casa.get("tipo"),
+                "horario": casa.get("horario"),
+                "telefone": casa.get("telefone"),
+                "whatsapp": casa.get("whatsapp"),
+                "google_maps": casa.get("google_maps"),
+                "cotacao_url": casa.get("cotacao_url"),
+                "formas_pagamento": (casa.get("formas_pagamento") or "").split(",") if casa.get("formas_pagamento") else [],
+                "agendamento_acima": casa.get("agendamento_acima"),
+                "valor_venda_especie": ultima.get("valor_venda_especie") if ultima else None,
+                "valor_venda_cartao": ultima.get("valor_venda_cartao") if ultima else None,
+                "spread_ptax_pct": ultima.get("spread_ptax") if ultima else None,
+                "spread_wise_pct": ultima.get("spread_wise") if ultima else None,
+                "iof_especie_pct": ultima.get("iof_especie") if ultima else None,
+                "custo_efetivo": ultima.get("custo_efetivo") if ultima else None,
+                "variacao_dia_anterior_rs": None,
+                "variacao_dia_anterior_pct": None,
+                "ptax_venda": ultima.get("ptax_venda") if ultima else None,
+                "wise_rate": ultima.get("wise_rate") if ultima else None,
+                "hora_coleta": None,
+                "sem_cotacao_hoje": True,
+                "ultima_cotacao_data": ultima.get("data") if ultima else None,
+                "e_menor_30_dias": False,
+                "fonte": ultima.get("fonte") if ultima else None,
+                "observacao": "Sem coleta hoje. Consulte pelo botao de WhatsApp/site." if not ultima
+                              else f"Ultima cotacao conhecida em {ultima.get('data')}",
+            }
+        cotacoes_payload.append(entry)
+
+    com_cot = sum(1 for c in cotacoes_payload if not c["sem_cotacao_hoje"])
+    payload = {
+        "meta": {
+            "data_coleta": data,
+            "hora_atualizacao": datetime.now().strftime("%H:%M:%S"),
+            "timestamp": datetime.now().isoformat(timespec="seconds"),
+            "total_casas": len(cotacoes_payload),
+            "casas_com_cotacao_hoje": com_cot,
+            "casas_sem_cotacao_hoje": len(cotacoes_payload) - com_cot,
+            "moeda": "EUR",
+            "cidade": "Salvador/BA",
+            "menor_custo_30_dias": menor_30,
+        },
+        "cotacoes": cotacoes_payload,
     }
 
     path = os.path.join(OUTPUT_DIR, "latest.json")

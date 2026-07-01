@@ -1,39 +1,31 @@
 # Configuracao do Monitor de Cambio EUR/BRL - Salvador, BA
-# ========================================================
-#
-# Casas que o scraper popula automaticamente sao cadastradas em runtime
-# (slug com sufixo "-mc"). As entradas abaixo sao apenas para casas que
-# voce queira preencher manualmente via data/manual_quotes.json
-# (ex: Confidence, Get Money quando nao aparecem no MelhorCambio).
+# Lista completa: 25 casas em Salvador
 
 moeda: EUR
 cidade: Salvador
 estado: BA
 
-# IOF (Decreto 12.499/2025)
 iof:
-  especie: 0.011    # 1,1% espécie
-  cartao: 0.0638    # 6,38% cartão pré-pago
+  especie: 0.011
+  cartao: 0.0638
 
-# Threshold para flagar discrepancias suspeitas
-max_spread_ptax: 5.0   # %
-
-# Historico mantido
+max_spread_ptax: 5.0
 historico_dias: 90
 
-# Volumes de referencia para ranking
 volumes_referencia:
   - 5000
   - 10000
   - 20000
 
-# Casas para entrada manual via data/manual_quotes.json
-# (o scraper MelhorCambio adiciona casas automaticamente com sufixo "-mc")
+# cobertura: "auto_melhorcambio" | "manual"
 casas_cambio:
+
+  # --- Travelex Confidence (5 unidades) ---
   - slug: "confidence-salvador-shopping"
-    nome: "Confidence Cambio - Salvador Shopping"
-    url: "https://www.confidencecambio.com.br/lojas/salvador-shopping/"
-    endereco: "Av. Tancredo Neves, 3133 - Caminho das Arvores, Salvador - BA"
+    nome: "Travelex Confidence - Salvador Shopping"
+    cobertura: "manual"
+    cotacao_url: "https://www.confidencecambio.com.br/euro-hoje/"
+    endereco: "Av. Tancredo Neves, 3133 - Loja 1169, Piso L1 - Caminho das Arvores, Salvador - BA"
     bairro: "Caminho das Arvores"
     tipo: "casa_cambio"
     horario: "Seg-Sab 9h-22h, Dom 12h-21h"
@@ -44,53 +36,347 @@ casas_cambio:
     agendamento_acima: 3000
 
   - slug: "confidence-shopping-barra"
-    nome: "Confidence Cambio - Shopping Barra"
-    url: "https://www.confidencecambio.com.br/lojas/shopping-barra/"
-    endereco: "Av. Centenario, 2992 - Chame-Chame, Salvador - BA"
+    nome: "Travelex Confidence - Shopping Barra"
+    cobertura: "manual"
+    cotacao_url: "https://www.confidencecambio.com.br/euro-hoje/"
+    endereco: "Av. Centenario, 2992 - Shopping Barra, Loja 427 L4 - Chame-Chame, Salvador - BA"
     bairro: "Barra"
     tipo: "casa_cambio"
     horario: "Seg-Sab 9h-22h, Dom 12h-21h"
     telefone: "(71) 3264-6050"
+    whatsapp: "5571993060038"
+    google_maps: "https://maps.google.com/?q=Confidence+Shopping+Barra+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  - slug: "confidence-shopping-bahia"
+    nome: "Travelex Confidence - Shopping da Bahia"
+    cobertura: "manual"
+    cotacao_url: "https://www.confidencecambio.com.br/euro-hoje/"
+    endereco: "Av. Tancredo Neves, 148 - Shopping da Bahia, Loja Q20 - Caminho das Arvores, Salvador - BA"
+    bairro: "Caminho das Arvores"
+    tipo: "casa_cambio"
+    horario: "Seg-Sab 9h-22h, Dom 12h-21h"
+    telefone: "(71) 3353-6111"
     whatsapp: null
-    google_maps: "https://maps.google.com/?q=Confidence+Cambio+Shopping+Barra+Salvador"
+    google_maps: "https://maps.google.com/?q=Confidence+Shopping+da+Bahia+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  - slug: "confidence-paralela"
+    nome: "Travelex Confidence - Paralela"
+    cobertura: "manual"
+    cotacao_url: "https://www.confidencecambio.com.br/euro-hoje/"
+    endereco: "Av. Luis Viana Filho, 8544 Block C-212-B - Patamares, Salvador - BA"
+    bairro: "Patamares"
+    tipo: "casa_cambio"
+    horario: "Seg-Sab 10h-22h"
+    telefone: null
+    whatsapp: "5571992810037"
+    google_maps: "https://maps.google.com/?q=Confidence+Cambio+Paralela+Salvador"
     formas_pagamento: ["Pix", "TED", "Dinheiro"]
     agendamento_acima: 3000
 
   - slug: "confidence-aeroporto-ssa"
-    nome: "Confidence Cambio - Aeroporto SSA"
-    url: "https://www.confidencecambio.com.br/lojas/aeroporto-salvador/"
-    endereco: "Aeroporto Int. de Salvador, Sao Cristovao, Salvador - BA"
+    nome: "Travelex Confidence - Aeroporto SSA"
+    cobertura: "manual"
+    cotacao_url: "https://www.confidencecambio.com.br/euro-hoje/"
+    endereco: "Aeroporto Int. Luis Eduardo Magalhaes, Pr. Gago Coutinho - Sao Cristovao, Salvador - BA"
     bairro: "Sao Cristovao"
     tipo: "aeroporto"
     horario: "Todos os dias 6h-22h"
     telefone: "(71) 3204-1286"
     whatsapp: null
-    google_maps: "https://maps.google.com/?q=Confidence+Cambio+Aeroporto+Salvador"
+    google_maps: "https://maps.google.com/?q=Confidence+Aeroporto+Salvador"
     formas_pagamento: ["Pix", "TED", "Dinheiro"]
     agendamento_acima: 3000
 
-  - slug: "get-money"
-    nome: "Get Money Cambio"
-    url: "https://www.getmoney.com.br"
-    endereco: "Salvador, BA"
-    bairro: "Centro"
+  # --- DayCambio (Banco Daycoval) ---
+  - slug: "daycambio-shopping-bahia"
+    nome: "DayCambio - Shopping da Bahia"
+    cobertura: "manual"
+    cotacao_url: "https://www.daycambio.com.br/cambio/moedas-em-especie/euro/"
+    endereco: "Av. Tancredo Neves, 148 - Shopping da Bahia, Loja Q20 - Caminho das Arvores, Salvador - BA"
+    bairro: "Caminho das Arvores"
+    tipo: "casa_cambio"
+    horario: "Seg-Sab 10h-22h"
+    telefone: "(71) 3512-4286"
+    whatsapp: "557135124286"
+    google_maps: "https://maps.google.com/?q=DayCambio+Shopping+da+Bahia"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  - slug: "salvador-cambio-itaigara"
+    nome: "Salvador Cambio (corresp. Daycoval)"
+    cobertura: "auto_melhorcambio"
+    cotacao_url: "https://www.melhorcambio.com/cotacao/compra/euro/salvador"
+    endereco: "Av. Antonio Carlos Magalhaes, 656 L 2 - Itaigara, Salvador - BA"
+    bairro: "Itaigara"
+    tipo: "casa_cambio"
+    horario: "Seg-Sex 9h-19h, Sab 9h-13h"
+    telefone: null
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Salvador+Cambio+Itaigara"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  # --- Lumina Corretora (2 unidades) ---
+  - slug: "lumina-shopping-barra"
+    nome: "Lumina Corretora - Shopping Barra"
+    cobertura: "manual"
+    cotacao_url: "https://www.luminacorretora.com.br/Cambio.html"
+    endereco: "Av. Centenario, 2992 - Shopping Barra, Loja 427 L4, Salvador - BA"
+    bairro: "Barra"
+    tipo: "corretora"
+    horario: "Seg-Sab 9h30-21h30, Dom 14h-20h"
+    telefone: "(71) 3237-2288"
+    whatsapp: "5571981541840"
+    google_maps: "https://maps.google.com/?q=Lumina+Shopping+Barra+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  - slug: "lumina-salvador-shopping"
+    nome: "Lumina Corretora - Salvador Shopping"
+    cobertura: "manual"
+    cotacao_url: "https://www.luminacorretora.com.br/Cambio.html"
+    endereco: "Av. Tancredo Neves, 3133 - Loja 1058 - Caminho das Arvores, Salvador - BA"
+    bairro: "Caminho das Arvores"
+    tipo: "corretora"
+    horario: "Seg-Sab 9h30-21h30, Dom 14h-20h"
+    telefone: "(71) 3019-6300"
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Lumina+Salvador+Shopping"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  # --- Conecta Cambio (2) ---
+  - slug: "conecta-salvador-shopping"
+    nome: "Conecta Cambio - Salvador Shopping"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Av. Tancredo Neves, 3313 - Salvador Shopping, Loja 1012, Salvador - BA"
+    bairro: "Caminho das Arvores"
+    tipo: "casa_cambio"
+    horario: "Seg-Sab 10h-22h"
+    telefone: "(71) 3342-3229"
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Conecta+Cambio+Salvador+Shopping"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  - slug: "conecta-trade-center"
+    nome: "Conecta Cambio - Salvador Trade Center"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Av. Tancredo Neves, 1632 - Torres Gemeas, Loja 41 Terreo, Salvador - BA"
+    bairro: "Caminho das Arvores"
+    tipo: "casa_cambio"
+    horario: "Seg-Sex 9h-18h"
+    telefone: "(71) 3480-1177"
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Conecta+Cambio+Trade+Center+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  # --- Labor Cambio ---
+  - slug: "labor-cambio"
+    nome: "Labor Cambio"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Av. Tancredo Neves, 3133 - Loja 133 - Caminho das Arvores, Salvador - BA"
+    bairro: "Caminho das Arvores"
+    tipo: "casa_cambio"
+    horario: "Seg-Sab 10h-22h"
+    telefone: "(71) 3018-4442"
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Labor+Cambio+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  # --- Bahia Cambio ---
+  - slug: "bahia-cambio"
+    nome: "Bahia Cambio"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Av. Antonio Carlos Magalhaes, 585 - Comp. Odonto-Medico, Loja 23 - Itaigara, Salvador - BA"
+    bairro: "Itaigara"
+    tipo: "casa_cambio"
+    horario: "Seg-Sex 9h-18h"
+    telefone: "(71) 3565-0580"
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Bahia+Cambio+Itaigara+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  # --- Voamais ---
+  - slug: "voamais-barra"
+    nome: "Voamais Viagens, Turismo e Cambio"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Av. Sete de Setembro, 4313 - Barra, Salvador - BA"
+    bairro: "Barra"
+    tipo: "casa_cambio"
+    horario: "Seg-Sex 9h-18h"
+    telefone: "(71) 3012-1819"
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Voamais+Cambio+Barra+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  # --- Western Union (3) ---
+  - slug: "wu-salvador-norte"
+    nome: "Western Union - Salvador Norte Shopping"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Salvador Norte Shopping, L2 Loja 2015 - Sao Cristovao, Salvador - BA"
+    bairro: "Sao Cristovao"
+    tipo: "casa_cambio"
+    horario: "Seg-Sab 10h-22h"
+    telefone: null
+    whatsapp: "5571999793542"
+    google_maps: "https://maps.google.com/?q=Western+Union+Salvador+Norte+Shopping"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  - slug: "wu-shopping-lapa"
+    nome: "Western Union - Shopping Center Lapa"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "R. Portao da Piedade, 155 - Dois de Julho, Salvador - BA"
+    bairro: "Dois de Julho"
+    tipo: "casa_cambio"
+    horario: "Seg-Sab 9h-19h"
+    telefone: "(71) 3042-0780"
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Western+Union+Shopping+Lapa+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  - slug: "premier-iguatemi"
+    nome: "Premier Cambio (Western Union) - Iguatemi"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Iguatemi Business - R. da Alfazema, 761 - 51 - Caminho das Arvores, Salvador - BA"
+    bairro: "Caminho das Arvores"
     tipo: "casa_cambio"
     horario: "Seg-Sex 9h-18h"
     telefone: null
-    whatsapp: null
-    google_maps: "https://maps.google.com/?q=Get+Money+Cambio+Salvador"
+    whatsapp: "5571993580023"
+    google_maps: "https://maps.google.com/?q=Premier+Cambio+Iguatemi+Salvador"
     formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  - slug: "itaigara-cambio-wu"
+    nome: "Itaigara Cambio (Western Union)"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Rua Rubens Guelli, 135 - Loja 228, 2o piso - Itaigara, Salvador - BA"
+    bairro: "Itaigara"
+    tipo: "casa_cambio"
+    horario: "Seg-Sex 9h-18h"
+    telefone: "(71) 2132-2316"
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Itaigara+Cambio+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  # --- Gradual Aeroporto ---
+  - slug: "gradual-aeroporto"
+    nome: "Gradual Turismo - Aeroporto SSA"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Aeroporto Int. Luis Eduardo Magalhaes, Loja 1019, Salvador - BA"
+    bairro: "Sao Cristovao"
+    tipo: "aeroporto"
+    horario: "Todos os dias 6h-22h"
+    telefone: null
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Gradual+Cambio+Aeroporto+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  # --- Bancos ---
+  - slug: "bb-cambio"
+    nome: "Banco do Brasil - Cambio Turismo"
+    cobertura: "manual"
+    cotacao_url: "https://www.bb.com.br/site/cambio-turismo/"
+    endereco: "Agencias BB em Salvador (so para correntistas)"
+    bairro: "Diversos"
+    tipo: "banco"
+    horario: "Seg-Sex 10h-16h"
+    telefone: "4004-0001"
+    whatsapp: null
+    google_maps: null
+    formas_pagamento: ["TED"]
+    agendamento_acima: 5000
+
+  - slug: "itau-cambio"
+    nome: "Itau - Cambio Turismo"
+    cobertura: "manual"
+    cotacao_url: "https://www.itau.com.br/cambio"
+    endereco: "Agencias Itau em Salvador (so para correntistas)"
+    bairro: "Diversos"
+    tipo: "banco"
+    horario: "Seg-Sex 10h-16h"
+    telefone: "4004-4828"
+    whatsapp: null
+    google_maps: null
+    formas_pagamento: ["TED"]
+    agendamento_acima: 5000
+
+  - slug: "bradesco-cambio"
+    nome: "Bradesco - Cambio Turismo"
+    cobertura: "manual"
+    cotacao_url: "https://www.bradesco.com.br/html/classic/produtos-servicos/exterior/cambio-turismo.shtm"
+    endereco: "Agencias Bradesco em Salvador (so para correntistas)"
+    bairro: "Diversos"
+    tipo: "banco"
+    horario: "Seg-Sex 10h-16h"
+    telefone: "4002-0022"
+    whatsapp: null
+    google_maps: null
+    formas_pagamento: ["TED"]
+    agendamento_acima: 5000
+
+  # --- Online ---
+  - slug: "get-money"
+    nome: "Get Money Cambio (online)"
+    cobertura: "manual"
+    cotacao_url: "https://www.getmoney.com.br/"
+    endereco: "Atendimento online + delivery em Salvador"
+    bairro: "Online"
+    tipo: "online"
+    horario: "Seg-Sex 9h-18h"
+    telefone: null
+    whatsapp: null
+    google_maps: null
+    formas_pagamento: ["Pix", "TED"]
+    agendamento_acima: 3000
+
+  - slug: "frente-corretora"
+    nome: "Frente Corretora (online)"
+    cobertura: "manual"
+    cotacao_url: "https://www.frentecorretora.com.br/"
+    endereco: "Atendimento online"
+    bairro: "Online"
+    tipo: "corretora"
+    horario: "Seg-Sex 9h-18h"
+    telefone: null
+    whatsapp: null
+    google_maps: null
+    formas_pagamento: ["Pix", "TED"]
     agendamento_acima: 3000
 
   - slug: "ourominas"
     nome: "Ourominas (OM DTVM)"
-    url: "https://www.ourominas.com/cotacao-do-dia"
-    endereco: "Salvador, BA"
-    bairro: "Centro"
+    cobertura: "manual"
+    cotacao_url: "https://www.ourominas.com/cotacao-do-dia"
+    endereco: "Atendimento online + lojas parceiras"
+    bairro: "Online"
     tipo: "dtvm"
     horario: "Seg-Sex 9h-18h"
     telefone: "(71) 3012-6868"
     whatsapp: null
-    google_maps: "https://maps.google.com/?q=Ourominas+Salvador"
-    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    google_maps: null
+    formas_pagamento: ["Pix", "TED"]
     agendamento_acima: 3000

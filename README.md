@@ -1,17 +1,34 @@
 # 💱 Monitor de Câmbio EUR/BRL — Salvador, BA
 
-Sistema autônomo de monitoramento de cotações do Euro (espécie) em casas de câmbio de Salvador.
+Sistema autônomo de monitoramento de cotações do Euro (espécie) em **25 casas de câmbio de Salvador**.
 
 📊 **Dashboard:** https://mauricio1806.github.io/Acompanhamento-c-mbio-/
+
+## Cobertura
+
+- **1 casa** com coleta automática via MelhorCâmbio (Salvador Câmbio - Itaigara)
+- **24 casas** com botões diretos de **WhatsApp / Telefone / Site / Google Maps** pra consulta manual rápida (30 segundos por casa)
+- **2 referências** automáticas: PTAX (BCB) e Wise
+
+### Casas catalogadas
+
+**Travelex Confidence (5):** Salvador Shopping, Shopping Barra, Shopping da Bahia, Paralela, Aeroporto SSA  
+**DayCâmbio:** Shopping da Bahia + Salvador Câmbio Itaigara (auto)  
+**Lúmina Corretora:** Shopping Barra, Salvador Shopping  
+**Conecta Câmbio:** Salvador Shopping, Salvador Trade Center  
+**Western Union:** Salvador Norte Shopping, Shopping Lapa, Premier (Iguatemi), Itaigara Câmbio  
+**Outras:** Labor Câmbio, Bahia Câmbio, Voamais (Barra), Gradual (Aeroporto SSA)  
+**Bancos:** BB, Itaú, Bradesco (turismo para correntistas)  
+**Online:** Get Money, Frente Corretora, Ourominas
 
 ## Como funciona
 
 1. **GitHub Actions roda 2x/dia** (10h e 16h BRT)
-2. **PTAX + Wise** coletados como referência (BCB + Wise API)
-3. **MelhorCâmbio Salvador** raspado para cotações reais de casas locais
-4. **Cotações manuais** (data/manual_quotes.json) processadas se existirem
+2. **PTAX + Wise** coletados como referência
+3. **MelhorCâmbio Salvador** raspado automaticamente
+4. **Cotações manuais** (data/manual_quotes.json) processadas se você adicionar
 5. Cálculos: IOF 1,1%, custo efetivo, spread PTAX/Wise, variação dia anterior
-6. JSONs estáticos gerados em `docs/data/` e dashboard publicado via GitHub Pages
+6. JSONs estáticos em `docs/data/` + dashboard publicado via GitHub Pages
 
 ## Estrutura
 
@@ -20,45 +37,34 @@ Sistema autônomo de monitoramento de cotações do Euro (espécie) em casas de 
 ├── .github/workflows/coleta-cambio.yml   # cron 2x/dia
 ├── scrapers/
 │   ├── bcb_ptax.py        # PTAX (BCB) + Wise
-│   └── melhorcambio.py    # casas de Salvador (HTML scraping)
+│   └── melhorcambio.py    # MelhorCâmbio Salvador
 ├── core/
 │   ├── db.py              # SQLite
-│   ├── calculator.py      # IOF, spread, ranking, custo efetivo
+│   ├── calculator.py      # IOF, spread, ranking
 │   └── builder.py         # gera latest/history/ranking.json
-├── docs/                  # dashboard (GitHub Pages, pasta /docs)
+├── docs/                  # dashboard GitHub Pages
 │   ├── index.html
-│   ├── assets/{style.css, app.js}
-│   └── data/{latest,history,ranking}.json
+│   ├── assets/
+│   └── data/
 ├── data/
-│   ├── cambio.db                       # SQLite versionado (histórico)
-│   └── manual_quotes.example.json      # template para entrada manual
-├── config.yaml            # IOF, casas, volumes de referência
-├── main.py                # pipeline principal
+│   ├── cambio.db
+│   └── manual_quotes.example.json
+├── config.yaml            # 25 casas catalogadas
+├── main.py
 └── requirements.txt
 ```
 
-## Uso local
+## Como adicionar cotação manual
+
+Você consulta a casa (WhatsApp/telefone/site - botões no dashboard) e adiciona ao arquivo:
 
 ```bash
-pip install -r requirements.txt
-python main.py              # pipeline completo (coleta + JSONs)
-python main.py --dry-run    # coleta e mostra sem persistir
-python main.py --init       # só inicializa banco e cadastra casas
-python main.py --build-json # só regenera JSONs do banco existente
-python main.py --vacuum     # remove histórico antigo + vacuum
-```
-
-## Cotações manuais
-
-Para casas que não aparecem no MelhorCâmbio (ex: Confidence, Get Money, agências bancárias), você pode adicionar cotações manualmente:
-
-```bash
+# 1. Copia o template
 cp data/manual_quotes.example.json data/manual_quotes.json
-# edite com as cotações que você consultou (WhatsApp, telefone, presencial)
-git add data/manual_quotes.json && git commit -m "feat: cotações manuais hoje" && git push
-```
 
-Na próxima execução, essas cotações serão incorporadas ao banco e ao dashboard.
+# 2. Edita com as cotações consultadas hoje
+# (use os slugs do config.yaml: confidence-shopping-barra, daycambio-shopping-bahia, etc)
+```
 
 Formato:
 ```json
@@ -68,24 +74,38 @@ Formato:
     "valor_venda_especie": 6.42,
     "valor_venda_cartao": 6.55,
     "fonte": "manual_whatsapp",
-    "observacao": "consultado em 29/06"
+    "observacao": "consultado 29/06 via WhatsApp"
   }
 ]
 ```
 
-`casa_slug` precisa existir em `config.yaml` (ou ser adicionado lá).
+```bash
+# 3. Commit e push
+git add data/manual_quotes.json
+git commit -m "feat: cotacoes manuais $(date +%Y-%m-%d)"
+git push
+```
+
+Na próxima execução (ou rodando manualmente via Actions → Run workflow), essas cotações entram no banco e dashboard.
+
+## Uso local
+
+```bash
+pip install -r requirements.txt
+python main.py              # pipeline completo
+python main.py --dry-run    # sem persistir
+python main.py --init       # só inicializa banco
+python main.py --build-json # só regenera JSONs
+python main.py --vacuum     # limpa histórico antigo
+```
 
 ## Stack
 
-- Python 3.11 + requests + BeautifulSoup + lxml + pyyaml
-- SQLite (versionado no repo, ~90 dias de histórico)
-- GitHub Actions (cron 2x/dia)
-- GitHub Pages (pasta `/docs`)
-- Chart.js (CDN, sem build)
+Python 3.11 • requests • BeautifulSoup • SQLite • GitHub Actions • GitHub Pages • Chart.js
 
 ## Notas
 
-- IOF 1,1% aplicado a operação em **espécie** (notas físicas)
-- Valor "custo efetivo" = `venda * (1 + IOF)` — é o que você efetivamente paga por EUR
-- O MelhorCâmbio agrega cotações de várias casas em Salvador; pode mostrar 1 ou várias dependendo do dia
-- Spread vs PTAX > 5% é flagado como alerta (configurável em `config.yaml`)
+- IOF 1,1% incluso no custo efetivo (operação em espécie)
+- Casas sem cotação hoje aparecem no dashboard com botão de consulta direta (WhatsApp/telefone/site)
+- Histórico de 90 dias mantido automaticamente
+- Spread > 5% vs PTAX flagado como alerta

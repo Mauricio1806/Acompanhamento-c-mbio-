@@ -61,26 +61,28 @@
   </section>
 
   <section class="table-section">
-    <h2>📊 Quadro Comparativo</h2>
+    <h2>📊 Quadro Comparativo <span class="muted" id="casas-resumo"></span></h2>
+    <div class="filter-row">
+      <label><input type="checkbox" id="filter-sem-cotacao" checked> Mostrar casas sem cotação hoje</label>
+    </div>
     <div class="table-wrapper">
       <table id="tabela-cotacoes">
         <thead>
           <tr>
             <th data-sort="nome">Casa ↕</th>
             <th data-sort="bairro">Bairro ↕</th>
-            <th>Horário</th>
             <th data-sort="valor_venda_especie" class="num">Venda (R$) ↕</th>
             <th data-sort="spread_ptax_pct" class="num">Spread PTAX % ↕</th>
             <th data-sort="custo_efetivo" class="num">Custo Efetivo (R$) ↕</th>
-            <th data-sort="variacao_dia_anterior_pct" class="num">Δ dia ↕</th>
-            <th>Ações</th>
+            <th>Status</th>
+            <th>Contato</th>
           </tr>
         </thead>
         <tbody id="tabela-body"></tbody>
       </table>
     </div>
     <p class="footnote" id="empty-msg" hidden>
-      Nenhuma cotação coletada ainda hoje. A coleta automática roda às 10h e 16h (Brasília).
+      Nenhuma cotação coletada ainda. A coleta automática roda às 10h e 16h (Brasília).
     </p>
   </section>
 

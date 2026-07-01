@@ -129,9 +129,9 @@ def processar_cotacao(
 def coletar_melhorcambio(config: dict, ptax: float | None, wise: float | None,
                          dry_run: bool = False) -> int:
     """
-    Faz scraping do MelhorCambio Salvador e salva as cotacoes encontradas.
-    Cada casa do MelhorCambio que nao tem cadastro no config.yaml e
-    cadastrada automaticamente como tipo 'casa_cambio_mc'.
+    Faz scraping do MelhorCambio Salvador. As cotacoes encontradas sao
+    mapeadas para casas ja cadastradas no config.yaml pelo slug ou,
+    se nao houver match, cadastradas com sufixo -mc.
     """
     print("\n[MelhorCambio] iniciando scraping...")
     dados = scrape_melhorcambio_salvador()
@@ -145,26 +145,46 @@ def coletar_melhorcambio(config: dict, ptax: float | None, wise: float | None,
           f"cartao_menor={dados['cartao_prepago_menor']}")
     print(f"[MelhorCambio] casas encontradas: {dados['casas_count']}")
 
+    # mapeia nome da casa para slug ja existente no config
+    slugs_existentes = {c["slug"]: c for c in config.get("casas_cambio", [])}
+    nome_to_slug = {}
+    for c in config.get("casas_cambio", []):
+        nome_lower = c["nome"].lower()
+        nome_to_slug[nome_lower] = c["slug"]
+        # match parcial: "Salvador Cambio" -> qualquer slug que contenha "salvador-cambio"
+        for palavra in ["salvador cambio", "salvador câmbio"]:
+            if palavra in nome_lower:
+                nome_to_slug[palavra] = c["slug"]
+
     processadas = 0
     for casa in dados["casas"]:
-        slug = casa["slug"]
-
-        # cadastra casa que veio do scraping (caso ainda nao esteja no banco)
-        if not dry_run:
-            upsert_casa_cambio({
-                "slug": slug,
-                "nome": casa["nome"],
-                "url": dados["url"],
-                "endereco": casa.get("endereco") or "Salvador, BA",
-                "bairro": _extrair_bairro(casa.get("endereco") or ""),
-                "tipo": "casa_cambio",
-                "horario": casa.get("horario"),
-                "telefone": None,
-                "whatsapp": None,
-                "google_maps": _gerar_google_maps(casa["nome"], casa.get("endereco")),
-                "formas_pagamento": ["Pix", "TED", "Dinheiro"],
-                "agendamento_acima": 3000,
-            })
+        nome_lower = casa["nome"].lower()
+        # tenta match
+        slug = None
+        for nome_ref, slug_ref in nome_to_slug.items():
+            if nome_ref in nome_lower or nome_lower in nome_ref:
+                slug = slug_ref
+                break
+        if not slug:
+            # nao tem cadastro - cria com sufixo -mc
+            slug = casa["slug"]
+            if not dry_run and slug not in slugs_existentes:
+                upsert_casa_cambio({
+                    "slug": slug,
+                    "nome": casa["nome"],
+                    "cobertura": "auto_melhorcambio",
+                    "url": dados["url"],
+                    "cotacao_url": dados["url"],
+                    "endereco": casa.get("endereco") or "Salvador, BA",
+                    "bairro": None,
+                    "tipo": "casa_cambio",
+                    "horario": casa.get("horario"),
+                    "telefone": None,
+                    "whatsapp": None,
+                    "google_maps": _gerar_google_maps(casa["nome"], casa.get("endereco")),
+                    "formas_pagamento": ["Pix", "TED", "Dinheiro"],
+                    "agendamento_acima": 3000,
+                })
 
         if casa.get("valor_venda_especie"):
             processar_cotacao(
@@ -187,7 +207,6 @@ def coletar_melhorcambio(config: dict, ptax: float | None, wise: float | None,
 def _extrair_bairro(endereco: str) -> str | None:
     if not endereco:
         return None
-    # heuristica: ", BAIRRO, Salvador" ou "Bairro - Salvador"
     import re
     m = re.search(r",\s*([A-ZÀ-Ú][A-Za-zÀ-ú\s]{2,40}?)\s*[,-]\s*Salvador", endereco)
     if m:

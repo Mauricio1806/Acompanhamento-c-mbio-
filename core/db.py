@@ -33,7 +33,9 @@ def init_db():
     CREATE TABLE IF NOT EXISTS casas_cambio (
         slug              TEXT PRIMARY KEY,
         nome              TEXT NOT NULL,
+        cobertura         TEXT,
         url               TEXT,
+        cotacao_url       TEXT,
         endereco          TEXT,
         bairro            TEXT,
         tipo              TEXT,
@@ -84,13 +86,15 @@ def upsert_casa_cambio(casa: dict[str, Any]):
         formas = ",".join(formas)
     cur.execute("""
         INSERT INTO casas_cambio (
-            slug, nome, url, endereco, bairro, tipo, horario,
+            slug, nome, cobertura, url, cotacao_url, endereco, bairro, tipo, horario,
             telefone, whatsapp, google_maps, formas_pagamento,
             agendamento_acima, ativo, atualizado_em
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
         ON CONFLICT(slug) DO UPDATE SET
             nome              = excluded.nome,
+            cobertura         = excluded.cobertura,
             url               = excluded.url,
+            cotacao_url       = excluded.cotacao_url,
             endereco          = excluded.endereco,
             bairro            = excluded.bairro,
             tipo              = excluded.tipo,
@@ -104,7 +108,9 @@ def upsert_casa_cambio(casa: dict[str, Any]):
     """, (
         casa["slug"],
         casa.get("nome"),
+        casa.get("cobertura"),
         casa.get("url"),
+        casa.get("cotacao_url"),
         casa.get("endereco"),
         casa.get("bairro"),
         casa.get("tipo"),
@@ -229,6 +235,31 @@ def get_menor_custo_30_dias() -> float | None:
     row = cur.fetchone()
     con.close()
     return row["minimo"] if row and row["minimo"] else None
+
+
+def get_todas_casas() -> list[dict]:
+    """Lista todas as casas cadastradas (sem JOIN com cotacoes)."""
+    con = _conn()
+    cur = con.cursor()
+    cur.execute("SELECT * FROM casas_cambio WHERE ativo=1 ORDER BY nome ASC")
+    rows = [dict(r) for r in cur.fetchall()]
+    con.close()
+    return rows
+
+
+def get_ultima_cotacao_data(casa_slug: str) -> dict | None:
+    """Ultima cotacao da casa (qualquer data) com data."""
+    con = _conn()
+    cur = con.cursor()
+    cur.execute("""
+        SELECT * FROM cotacoes
+        WHERE casa_slug = ?
+        ORDER BY data DESC, hora DESC
+        LIMIT 1
+    """, (casa_slug,))
+    row = cur.fetchone()
+    con.close()
+    return dict(row) if row else None
 
 
 def limpar_historico_antigo(dias: int = 90):

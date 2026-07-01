@@ -12,6 +12,7 @@
     sortDir: 'asc',
     filtroBairro: '',
     filtroTipo: '',
+    mostrarSemCotacao: true,
     volume: 5000,
     threshold: parseFloat(localStorage.getItem('threshold_eur_brl')) || null,
     chartPeriod: 30,
@@ -139,6 +140,7 @@
     return cotacoes.filter(c => {
       if (state.filtroBairro && c.bairro !== state.filtroBairro) return false;
       if (state.filtroTipo && c.tipo !== state.filtroTipo) return false;
+      if (!state.mostrarSemCotacao && c.sem_cotacao_hoje) return false;
       return true;
     });
   }
@@ -147,6 +149,10 @@
     const k = state.sortKey;
     const dir = state.sortDir === 'asc' ? 1 : -1;
     return [...cotacoes].sort((a, b) => {
+      // sempre coloca casas com cotação hoje primeiro
+      if (a.sem_cotacao_hoje !== b.sem_cotacao_hoje) {
+        return a.sem_cotacao_hoje ? 1 : -1;
+      }
       const va = a[k]; const vb = b[k];
       if (va == null && vb == null) return 0;
       if (va == null) return 1;
@@ -154,6 +160,14 @@
       if (typeof va === 'number') return (va - vb) * dir;
       return String(va).localeCompare(String(vb)) * dir;
     });
+  }
+
+  function renderResumo() {
+    const meta = state.latest?.meta;
+    if (!meta) return;
+    const txt = `(${meta.casas_com_cotacao_hoje} com cotação hoje • ${meta.casas_sem_cotacao_hoje} sem cotação • ${meta.total_casas} total)`;
+    const el = document.getElementById('casas-resumo');
+    if (el) el.textContent = txt;
   }
 
   function renderTabela() {
@@ -172,30 +186,64 @@
       const tr = document.createElement('tr');
       const isBest = c.e_menor_30_dias;
       const isAlert = c.observacao && c.observacao.includes('ALERTA');
-      const isBelowThreshold = state.threshold && c.custo_efetivo < state.threshold;
+      const isBelowThreshold = state.threshold && c.custo_efetivo && c.custo_efetivo < state.threshold;
+      const isSemCot = c.sem_cotacao_hoje;
 
       if (isBest || isBelowThreshold) tr.classList.add('row-best');
       else if (isAlert) tr.classList.add('row-alert');
+      if (isSemCot) tr.classList.add('row-sem-cot');
 
-      const variacao = c.variacao_dia_anterior_pct;
-      const varHtml = variacao == null ? '—'
-        : `<span class="${variacao > 0 ? 'var-up' : 'var-down'}">${variacao > 0 ? '↑' : '↓'} ${Math.abs(variacao).toFixed(2)}%</span>`;
+      // botões de contato
+      const botoes = [];
+      if (c.whatsapp) {
+        const tel = c.whatsapp.replace(/\D/g, '');
+        botoes.push(`<a class="btn-acao btn-wpp" href="https://wa.me/${tel}?text=Ol%C3%A1!%20Gostaria%20da%20cota%C3%A7%C3%A3o%20do%20Euro%20hoje." target="_blank" rel="noopener" title="WhatsApp">💬</a>`);
+      }
+      if (c.telefone) {
+        const tel = c.telefone.replace(/\D/g, '');
+        botoes.push(`<a class="btn-acao btn-tel" href="tel:${tel}" title="${c.telefone}">📞</a>`);
+      }
+      if (c.cotacao_url) {
+        botoes.push(`<a class="btn-acao btn-site" href="${c.cotacao_url}" target="_blank" rel="noopener" title="Site / Cotação">🌐</a>`);
+      }
+      if (c.google_maps) {
+        botoes.push(`<a class="btn-acao btn-map" href="${c.google_maps}" target="_blank" rel="noopener" title="Mapa">🗺️</a>`);
+      }
+      const contatoHtml = botoes.length ? botoes.join('') : '<span class="muted">—</span>';
+
+      // status
+      let statusHtml;
+      if (isSemCot) {
+        if (c.valor_venda_especie) {
+          statusHtml = `<span class="tag stale">Última: ${c.ultima_cotacao_data || '?'}</span>`;
+        } else {
+          statusHtml = `<span class="tag pending">Aguardando consulta</span>`;
+        }
+      } else {
+        const tags = [];
+        if (isBest) tags.push('<span class="tag best">↓ 30d</span>');
+        if (isAlert) tags.push('<span class="tag alert">!</span>');
+        if (c.fonte === 'melhorcambio') tags.push('<span class="tag auto">Auto</span>');
+        if (c.fonte && c.fonte.startsWith('manual')) tags.push('<span class="tag manual">Manual</span>');
+        statusHtml = tags.length ? tags.join(' ') : '<span class="tag ok">OK</span>';
+      }
 
       tr.innerHTML = `
-        <td>${c.nome || c.casa_slug}
-          ${isBest ? '<span class="tag best">↓ 30d</span>' : ''}
-          ${isAlert ? '<span class="tag alert">!</span>' : ''}
+        <td>
+          <div class="casa-nome">${c.nome || c.casa_slug}</div>
+          <div class="casa-end muted">${c.endereco || ''}</div>
         </td>
         <td>${c.bairro || '—'}</td>
-        <td>${c.horario || '—'}</td>
         <td class="num">${fmtBRL(c.valor_venda_especie)}</td>
         <td class="num">${fmtPct(c.spread_ptax_pct)}</td>
         <td class="num"><strong>${fmtBRL(c.custo_efetivo)}</strong></td>
-        <td class="num">${varHtml}</td>
-        <td>${c.google_maps ? `<a class="btn-map" href="${c.google_maps}" target="_blank" rel="noopener">🗺️ Mapa</a>` : '—'}</td>
+        <td>${statusHtml}</td>
+        <td class="acoes">${contatoHtml}</td>
       `;
       tbody.appendChild(tr);
     });
+
+    renderResumo();
   }
 
   // ---------- chart ----------
@@ -270,6 +318,8 @@
     });
     $('#filtro-bairro').addEventListener('change', e => { state.filtroBairro = e.target.value; renderTabela(); });
     $('#filtro-tipo').addEventListener('change', e => { state.filtroTipo = e.target.value; renderTabela(); });
+    const checkSem = document.getElementById('filter-sem-cotacao');
+    if (checkSem) checkSem.addEventListener('change', e => { state.mostrarSemCotacao = e.target.checked; renderTabela(); });
 
     document.querySelectorAll('th[data-sort]').forEach(th => {
       th.addEventListener('click', () => {
