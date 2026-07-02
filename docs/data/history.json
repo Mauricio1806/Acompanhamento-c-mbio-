@@ -1,10 +1,35 @@
 {
   "meta": {
     "periodo_dias": 90,
-    "total_registros": 0,
-    "data_inicio": null,
-    "data_fim": null,
-    "timestamp": "2026-07-02T02:15:10"
+    "total_registros": 3,
+    "data_inicio": "2026-07-02",
+    "data_fim": "2026-07-02",
+    "timestamp": "2026-07-02T02:19:39"
   },
-  "serie_temporal": []
+  "serie_temporal": [
+    {
+      "data": "2026-07-02",
+      "ptax": 5.9145,
+      "casas": {
+        "salvador-cambio-itaigara": {
+          "nome": "Salvador Cambio (corresp. Daycoval)",
+          "valor_venda": 6.37,
+          "custo_efetivo": 6.4401,
+          "spread_ptax": 7.7
+        },
+        "melhorcambio-sp": {
+          "nome": "MelhorCâmbio - São Paulo (benchmark)",
+          "valor_venda": 6.35,
+          "custo_efetivo": 6.4198,
+          "spread_ptax": 7.36
+        },
+        "melhorcambio-rj": {
+          "nome": "MelhorCâmbio - Rio de Janeiro (benchmark)",
+          "valor_venda": 6.35,
+          "custo_efetivo": 6.4198,
+          "spread_ptax": 7.36
+        }
+      }
+    }
+  ]
 }
