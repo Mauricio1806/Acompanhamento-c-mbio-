@@ -1,7 +1,7 @@
 {
   "meta": {
     "data": "2026-07-02",
-    "timestamp": "2026-07-02T02:19:39",
+    "timestamp": "2026-07-02T13:45:59",
     "volumes_referencia_eur": [
       5000,
       10000,
@@ -11,122 +11,8 @@
     "cidade": "Salvador/BA"
   },
   "ranking": {
-    "top3": [
-      {
-        "posicao": 1,
-        "casa_slug": "melhorcambio-sp",
-        "nome": "MelhorCâmbio - São Paulo (benchmark)",
-        "custo_efetivo": 6.4198,
-        "valor_venda": 6.35,
-        "spread_ptax": 7.36
-      },
-      {
-        "posicao": 2,
-        "casa_slug": "melhorcambio-rj",
-        "nome": "MelhorCâmbio - Rio de Janeiro (benchmark)",
-        "custo_efetivo": 6.4198,
-        "valor_venda": 6.35,
-        "spread_ptax": 7.36
-      },
-      {
-        "posicao": 3,
-        "casa_slug": "salvador-cambio-itaigara",
-        "nome": "Salvador Cambio (corresp. Daycoval)",
-        "custo_efetivo": 6.4401,
-        "valor_venda": 6.37,
-        "spread_ptax": 7.7
-      }
-    ],
-    "completo": [
-      {
-        "posicao": 1,
-        "casa_slug": "melhorcambio-sp",
-        "nome": "MelhorCâmbio - São Paulo (benchmark)",
-        "custo_efetivo": 6.4198
-      },
-      {
-        "posicao": 2,
-        "casa_slug": "melhorcambio-rj",
-        "nome": "MelhorCâmbio - Rio de Janeiro (benchmark)",
-        "custo_efetivo": 6.4198
-      },
-      {
-        "posicao": 3,
-        "casa_slug": "salvador-cambio-itaigara",
-        "nome": "Salvador Cambio (corresp. Daycoval)",
-        "custo_efetivo": 6.4401
-      }
-    ],
-    "por_volume": {
-      "5000": [
-        {
-          "casa_slug": "melhorcambio-sp",
-          "nome": "MelhorCâmbio - São Paulo (benchmark)",
-          "custo_efetivo": 6.4198,
-          "custo_total": 32099.0,
-          "economia_vs_pior": 101.5
-        },
-        {
-          "casa_slug": "melhorcambio-rj",
-          "nome": "MelhorCâmbio - Rio de Janeiro (benchmark)",
-          "custo_efetivo": 6.4198,
-          "custo_total": 32099.0,
-          "economia_vs_pior": 101.5
-        },
-        {
-          "casa_slug": "salvador-cambio-itaigara",
-          "nome": "Salvador Cambio (corresp. Daycoval)",
-          "custo_efetivo": 6.4401,
-          "custo_total": 32200.5,
-          "economia_vs_pior": 0.0
-        }
-      ],
-      "10000": [
-        {
-          "casa_slug": "melhorcambio-sp",
-          "nome": "MelhorCâmbio - São Paulo (benchmark)",
-          "custo_efetivo": 6.4198,
-          "custo_total": 64198.0,
-          "economia_vs_pior": 203.0
-        },
-        {
-          "casa_slug": "melhorcambio-rj",
-          "nome": "MelhorCâmbio - Rio de Janeiro (benchmark)",
-          "custo_efetivo": 6.4198,
-          "custo_total": 64198.0,
-          "economia_vs_pior": 203.0
-        },
-        {
-          "casa_slug": "salvador-cambio-itaigara",
-          "nome": "Salvador Cambio (corresp. Daycoval)",
-          "custo_efetivo": 6.4401,
-          "custo_total": 64401.0,
-          "economia_vs_pior": 0.0
-        }
-      ],
-      "20000": [
-        {
-          "casa_slug": "melhorcambio-sp",
-          "nome": "MelhorCâmbio - São Paulo (benchmark)",
-          "custo_efetivo": 6.4198,
-          "custo_total": 128396.0,
-          "economia_vs_pior": 406.0
-        },
-        {
-          "casa_slug": "melhorcambio-rj",
-          "nome": "MelhorCâmbio - Rio de Janeiro (benchmark)",
-          "custo_efetivo": 6.4198,
-          "custo_total": 128396.0,
-          "economia_vs_pior": 406.0
-        },
-        {
-          "casa_slug": "salvador-cambio-itaigara",
-          "nome": "Salvador Cambio (corresp. Daycoval)",
-          "custo_efetivo": 6.4401,
-          "custo_total": 128802.0,
-          "economia_vs_pior": 0.0
-        }
-      ]
-    }
+    "top3": [],
+    "completo": [],
+    "por_volume": {}
   }
 }

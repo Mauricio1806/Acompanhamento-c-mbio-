@@ -47,6 +47,16 @@ def load_config() -> dict:
 
 
 def init_casas_from_config(config: dict):
+    # remove casas obsoletas de versoes anteriores (limpeza v5 -> v6)
+    from core.db import _conn
+    con = _conn()
+    cur = con.cursor()
+    for slug_obsoleto in ["melhorcambio-sp", "melhorcambio-rj", "melhorcambio-agregado"]:
+        cur.execute("DELETE FROM cotacoes WHERE casa_slug = ?", (slug_obsoleto,))
+        cur.execute("DELETE FROM casas_cambio WHERE slug = ?", (slug_obsoleto,))
+    con.commit()
+    con.close()
+
     casas = config.get("casas_cambio", [])
     for casa in casas:
         upsert_casa_cambio(casa)
@@ -133,80 +143,34 @@ def _safe_scrape(nome, fn):
 
 def coletar_melhorcambio(config, ptax, wise, dry_run) -> int:
     """
-    Coleta cotacao de EUR turismo no MelhorCambio em 3 cidades:
-    - Salvador (aplicada a Salvador Câmbio Itaigara)
-    - Sao Paulo (benchmark)
-    - Rio de Janeiro (benchmark)
+    Coleta cotacao de EUR turismo do MelhorCambio Salvador.
+    Aplica ao slug 'salvador-cambio-itaigara' (ja cadastrado no config).
     """
     from scrapers.melhorcambio import scrape_cidade
 
-    processadas = 0
-    cidades_config = {
-        "salvador": {
-            "slug": "salvador-cambio-itaigara",
-            "cria": False,  # ja existe no config
-        },
-        "sao-paulo": {
-            "slug": "melhorcambio-sp",
-            "nome": "MelhorCâmbio - São Paulo (benchmark)",
-            "endereco": "São Paulo, SP (menor valor listado)",
-            "bairro": "Benchmark",
-            "cria": True,
-        },
-        "rio-de-janeiro": {
-            "slug": "melhorcambio-rj",
-            "nome": "MelhorCâmbio - Rio de Janeiro (benchmark)",
-            "endereco": "Rio de Janeiro, RJ (menor valor listado)",
-            "bairro": "Benchmark",
-            "cria": True,
-        },
-    }
+    print("\n[MelhorCambio-salvador] iniciando scraping...")
+    dados = _safe_scrape("MelhorCambio-salvador", lambda: scrape_cidade("salvador"))
+    if dados.get("erro"):
+        print(f"[MelhorCambio-salvador] falhou: {dados['erro']}")
+        return 0
 
-    for cidade, cfg in cidades_config.items():
-        print(f"\n[MelhorCambio-{cidade}] iniciando scraping...")
-        dados = _safe_scrape(f"MelhorCambio-{cidade}", lambda c=cidade: scrape_cidade(c))
-        if dados.get("erro"):
-            print(f"[MelhorCambio-{cidade}] falhou: {dados['erro']}")
-            continue
+    print(f"[MelhorCambio-salvador] papel_menor={dados.get('papel_moeda_menor')} "
+          f"cartao_menor={dados.get('cartao_menor')} "
+          f"comercial={dados.get('cambio_comercial')} "
+          f"casa={dados.get('casa_principal')}")
 
-        print(f"[MelhorCambio-{cidade}] papel_menor={dados.get('papel_moeda_menor')} "
-              f"cartao_menor={dados.get('cartao_menor')} "
-              f"comercial={dados.get('cambio_comercial')} "
-              f"casa={dados.get('casa_principal')}")
+    if not dados.get("papel_moeda_menor"):
+        print("[MelhorCambio-salvador] sem valor - pulando")
+        return 0
 
-        if not dados.get("papel_moeda_menor"):
-            print(f"[MelhorCambio-{cidade}] sem valor - pulando")
-            continue
-
-        # cria casa se necessario (benchmarks)
-        if cfg["cria"] and not dry_run:
-            upsert_casa_cambio({
-                "slug": cfg["slug"],
-                "nome": cfg["nome"],
-                "cobertura": "auto_melhorcambio",
-                "url": dados["url"],
-                "cotacao_url": dados["url"],
-                "endereco": cfg["endereco"],
-                "bairro": cfg["bairro"],
-                "tipo": "online",
-                "horario": None,
-                "telefone": None,
-                "whatsapp": None,
-                "google_maps": None,
-                "formas_pagamento": ["Pix", "TED", "Dinheiro"],
-                "agendamento_acima": 3000,
-            })
-
-        processar_cotacao(
-            cfg["slug"], dados["papel_moeda_menor"], ptax, wise, config,
-            valor_cartao=dados.get("cartao_menor"),
-            fonte="melhorcambio",
-            observacao=f"{cidade} - casa: {dados.get('casa_principal') or '?'}",
-            dry_run=dry_run,
-        )
-        processadas += 1
-
-    return processadas
+    processar_cotacao(
+        "salvador-cambio-itaigara", dados["papel_moeda_menor"], ptax, wise, config,
+        valor_cartao=dados.get("cartao_menor"),
+        fonte="melhorcambio",
+        observacao=f"casa: {dados.get('casa_principal') or '?'}",
+        dry_run=dry_run,
+    )
+    return 1
 
 
 def coletar_confidence(config, ptax, wise, dry_run) -> int:
