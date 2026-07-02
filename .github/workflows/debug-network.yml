@@ -1,0 +1,39 @@
+name: Debug Network (manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug-network:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run network capture
+        run: python debug_network.py
+        env:
+          PYTHONUNBUFFERED: "1"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-network
+          path: debug_network/
+          retention-days: 7
