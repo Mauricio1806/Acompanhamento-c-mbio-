@@ -1,7 +1,7 @@
 {
   "meta": {
     "data": "2026-07-02",
-    "timestamp": "2026-07-02T14:30:04",
+    "timestamp": "2026-07-02T15:20:34",
     "volumes_referencia_eur": [
       5000,
       10000,
@@ -18,7 +18,7 @@
         "nome": "Salvador Cambio (corresp. Daycoval)",
         "custo_efetivo": 6.4603,
         "valor_venda": 6.39,
-        "spread_ptax": 7.62
+        "spread_ptax": 7.32
       }
     ],
     "completo": [

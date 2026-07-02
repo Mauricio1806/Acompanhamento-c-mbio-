@@ -1,10 +1,10 @@
 {
   "meta": {
     "periodo_dias": 90,
-    "total_registros": 1,
+    "total_registros": 2,
     "data_inicio": "2026-07-02",
     "data_fim": "2026-07-02",
-    "timestamp": "2026-07-02T14:30:04"
+    "timestamp": "2026-07-02T15:20:34"
   },
   "serie_temporal": [
     {
@@ -15,7 +15,7 @@
           "nome": "Salvador Cambio (corresp. Daycoval)",
           "valor_venda": 6.39,
           "custo_efetivo": 6.4603,
-          "spread_ptax": 7.62
+          "spread_ptax": 7.32
         }
       }
     }
