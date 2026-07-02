@@ -380,3 +380,61 @@ casas_cambio:
     google_maps: null
     formas_pagamento: ["Pix", "TED"]
     agendamento_acima: 3000
+
+  # --- Casas adicionadas em 01/07/26 (pesquisa Wise/Exiap/ListaTudo) ---
+
+  - slug: "simple-cambio"
+    nome: "Simple Câmbio - Salvador Prime"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Av. Tancredo Neves, 2227 - Sala 710 - Caminho das Árvores, Salvador - BA"
+    bairro: "Caminho das Arvores"
+    tipo: "casa_cambio"
+    horario: "Seg-Sex 9h-18h"
+    telefone: "(71) 3019-7777"
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Simple+Cambio+Salvador+Prime"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  - slug: "prime-cambio-itaigara"
+    nome: "Prime Câmbio - Shopping Itaigara"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Av. Antônio Carlos Magalhães, 656 Loja 65 2º Piso - Itaigara, Salvador - BA"
+    bairro: "Itaigara"
+    tipo: "casa_cambio"
+    horario: "Seg-Sex 9h-18h, Sab 9h-13h"
+    telefone: "(71) 3271-2470"
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Prime+Cambio+Itaigara+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  - slug: "tours-bahia-international"
+    nome: "Tours Bahia International"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Rua Bélgica, 74 sl 1 - Comércio, Salvador - BA"
+    bairro: "Comercio"
+    tipo: "casa_cambio"
+    horario: "Seg-Sex 9h-17h"
+    telefone: "(71) 3243-4526"
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Tours+Bahia+International+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000
+
+  - slug: "iguatemi-cambio-turismo"
+    nome: "Iguatemi Câmbio e Turismo"
+    cobertura: "manual"
+    cotacao_url: null
+    endereco: "Av. Tancredo Neves, 148 qd Q lj 31 - Caminho das Árvores, Salvador - BA"
+    bairro: "Caminho das Arvores"
+    tipo: "casa_cambio"
+    horario: "Seg-Sab 10h-22h"
+    telefone: "(71) 3345-0002"
+    whatsapp: null
+    google_maps: "https://maps.google.com/?q=Iguatemi+Cambio+Turismo+Salvador"
+    formas_pagamento: ["Pix", "TED", "Dinheiro"]
+    agendamento_acima: 3000

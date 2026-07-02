@@ -1,45 +1,56 @@
 """
-Scraper MelhorCambio Salvador via Playwright.
+Scraper MelhorCambio (multi-cidade) via Playwright.
 
-O site foi reformulado em jun/2026: agora renderiza cotacoes via JavaScript.
-Este scraper abre a pagina em navegador headless e extrai os valores.
+Baseado em debug REAL do HTML/texto renderizado em 30/06/26.
 
-URL alvo: https://www.melhorcambio.com/cotacao/compra/euro/salvador
+Estrutura do texto renderizado (importantes):
+  linha ~34: "Taxas de câmbio turismo para comprar Euro em {cidade}"
+  linha ~35: "R$ 6,34"  (papel moeda menor valor)
+  linha ~45: "Salvador Cãmbio"  (nome com til errado no site - normalizar)
+  linha ~53: "Valor com IOF R$ 6,3411"
+  linha ~65: "R$ 6,45"  (cartão pre pago menor)
+  linha ~83: "Valor com IOF R$ 6,4504"
+  linha ~85: "Euro Turismo em {cidade} (BA) - DATA"
+  linha ~90: "ComercialR$5,8991"
+
+O parser extrai:
+  - papel_moeda_menor    (venda espécie)
+  - papel_moeda_com_iof  (custo efetivo com IOF já embutido)
+  - cartao_menor
+  - cartao_com_iof
+  - cambio_comercial     (referência tipo PTAX)
+  - casa_principal       (nome da casa que aparece no topo)
 """
+import re
 from datetime import datetime
 
-from scrapers.playwright_base import (
-    browser_page, parse_brl, find_prices_in_range,
-    PLAYWRIGHT_AVAILABLE,
-)
+from scrapers.playwright_base import browser_page, PLAYWRIGHT_AVAILABLE
 
 
-URL = "https://www.melhorcambio.com/cotacao/compra/euro/salvador"
+CIDADES = {
+    "salvador":       "https://www.melhorcambio.com/cotacao/compra/euro/salvador",
+    "sao-paulo":      "https://www.melhorcambio.com/cotacao/compra/euro/sao-paulo",
+    "rio-de-janeiro": "https://www.melhorcambio.com/cotacao/compra/euro/rio-de-janeiro",
+}
 
 
-def scrape_melhorcambio_salvador() -> dict:
-    """
-    Retorna dict:
-    {
-      "fonte": "melhorcambio",
-      "timestamp": "...",
-      "cambio_comercial": 5.83,
-      "papel_moeda_menor": 6.27,
-      "cartao_prepago_menor": 6.38,
-      "casas": [ {nome, endereco, valor_venda_especie, valor_venda_cartao} ],
-      "casas_count": N,
-      "erro": null | "mensagem"
-    }
-    """
+def scrape_cidade(cidade_slug: str) -> dict:
+    """Scraper de uma cidade do MelhorCambio."""
+    url = CIDADES.get(cidade_slug)
+    if not url:
+        return {"erro": f"cidade desconhecida: {cidade_slug}"}
+
     resultado = {
         "fonte": "melhorcambio",
-        "url": URL,
+        "cidade": cidade_slug,
+        "url": url,
         "timestamp": datetime.now().isoformat(),
-        "cambio_comercial": None,
         "papel_moeda_menor": None,
-        "cartao_prepago_menor": None,
-        "casas": [],
-        "casas_count": 0,
+        "papel_moeda_com_iof": None,
+        "cartao_menor": None,
+        "cartao_com_iof": None,
+        "cambio_comercial": None,
+        "casa_principal": None,
         "erro": None,
     }
 
@@ -48,168 +59,129 @@ def scrape_melhorcambio_salvador() -> dict:
         return resultado
 
     try:
-        with browser_page(headless=True, timeout_ms=25000) as page:
-            page.goto(URL, wait_until="domcontentloaded", timeout=30000)
-            # da tempo para JS renderizar
-            page.wait_for_timeout(3500)
-
-            # 1. tenta pegar valores de referencia (papel moeda menor, cartao menor, comercial)
-            _extrair_referencias(page, resultado)
-
-            # 2. tenta pegar lista de casas
-            _extrair_casas(page, resultado)
-
+        with browser_page(headless=True, timeout_ms=30000) as page:
+            page.goto(url, wait_until="domcontentloaded", timeout=35000)
+            page.wait_for_timeout(4000)
+            texto = page.evaluate("document.body.innerText") or ""
+            _parse(texto, resultado)
     except Exception as e:
         resultado["erro"] = f"erro playwright: {e}"
 
-    resultado["casas_count"] = len(resultado["casas"])
     return resultado
 
 
-def _extrair_referencias(page, resultado: dict):
-    """Procura a tabela resumo (papel moeda menor/comercial/cartao pre-pago)."""
-    try:
-        html = page.content()
-    except Exception:
-        return
-
-    # heuristica sobre o texto renderizado
-    text = _plain_text(page)
-    if not text:
-        return
-
-    lines = text.split("\n")
-    for i, line in enumerate(lines):
-        l = line.strip().lower()
-        # captura o valor da linha OU da linha seguinte
-        contexto = " ".join(lines[i:i+3]).lower() if i + 3 <= len(lines) else l
-        if "papel moeda" in l and "menor" in l:
-            v = _proximo_valor(contexto)
-            if v:
-                resultado["papel_moeda_menor"] = v
-        elif ("cartao" in l or "cartão" in l) and "menor" in l:
-            v = _proximo_valor(contexto)
-            if v:
-                resultado["cartao_prepago_menor"] = v
-        elif "comercial" in l and ("cambio" in l or "câmbio" in l):
-            v = _proximo_valor(contexto)
-            if v:
-                resultado["cambio_comercial"] = v
-
-
-def _extrair_casas(page, resultado: dict):
-    """
-    Procura cards de casas de cambio. O layout do MelhorCambio geralmente
-    tem elementos com nome, endereco e dois valores (papel moeda + cartao).
-    Estrategia: procurar por todos os elementos que contenham "Valor com IOF"
-    ou similares e subir na arvore ate um bloco que tenha nome + endereco.
-    """
-    try:
-        # candidato 1: blocos com data-attribute conhecido
-        cards = page.query_selector_all("[class*='casa'], [class*='store'], [class*='card']")
-        for card in cards:
-            info = _extrair_info_card(card)
-            if info:
-                # evitar duplicatas por nome
-                if not any(c["nome"].lower() == info["nome"].lower() for c in resultado["casas"]):
-                    resultado["casas"].append(info)
-
-        # candidato 2: se nao achou nada, olhar por elementos contendo "Salvador"
-        # e valores no formato "R$ X,XX"
-        if not resultado["casas"]:
-            _extrair_por_texto_bruto(page, resultado)
-
-    except Exception:
-        pass
-
-
-def _extrair_info_card(elem) -> dict | None:
-    """Tenta identificar nome, endereco e valores dentro de um elemento card."""
-    try:
-        text = elem.inner_text().strip()
-    except Exception:
-        return None
-
-    if not text or len(text) < 20:
-        return None
-    if "Salvador" not in text and "BA" not in text:
-        return None
-
-    prices = find_prices_in_range(text, lo=4.5, hi=12.0)
-    if not prices:
-        return None
-
-    # nome: primeira linha significativa
-    lines = [l.strip() for l in text.split("\n") if l.strip()]
-    nome = None
-    blacklist = ("R$", "Papel", "Cartão", "Cartao", "Valor", "IOF", "Faca",
-                 "Faça", "Ligar", "Site", "Voltar", "SEG", "SÁB", "SAB", "DOM",
-                 "Habilitado", "Correspondente", "Salvador -", "Euro")
-    for linha in lines:
-        if any(b.lower() in linha.lower() for b in blacklist):
-            continue
-        if 3 < len(linha) < 100:
-            nome = linha
-            break
-
-    if not nome:
-        return None
+def scrape_melhorcambio_salvador() -> dict:
+    """Wrapper mantido para compatibilidade com main.py antigo."""
+    dados = scrape_cidade("salvador")
+    # transforma no formato esperado pelo main
+    casas = []
+    if dados.get("papel_moeda_menor") and dados.get("casa_principal"):
+        casas.append({
+            "nome": dados["casa_principal"],
+            "slug": None,   # main.py mapeia pelo nome
+            "endereco": "Salvador, BA (agregado MelhorCambio)",
+            "valor_venda_especie": dados["papel_moeda_menor"],
+            "valor_venda_cartao":  dados.get("cartao_menor"),
+            "correspondente": None,
+            "horario": None,
+        })
 
     return {
-        "nome": nome,
-        "endereco": _extrair_endereco(text),
-        "valor_venda_especie": prices[0] if len(prices) >= 1 else None,
-        "valor_venda_cartao": prices[1] if len(prices) >= 2 else None,
-        "correspondente": _extrair_correspondente(text),
+        "fonte": "melhorcambio",
+        "url": dados["url"],
+        "timestamp": dados["timestamp"],
+        "cambio_comercial":     dados.get("cambio_comercial"),
+        "papel_moeda_menor":    dados.get("papel_moeda_menor"),
+        "cartao_prepago_menor": dados.get("cartao_menor"),
+        "casas": casas,
+        "casas_count": len(casas),
+        "erro": dados.get("erro"),
     }
 
 
-def _extrair_por_texto_bruto(page, resultado: dict):
-    """Fallback: cria casa 'agregada' com o valor menor mostrado no topo."""
-    if resultado["papel_moeda_menor"]:
-        resultado["casas"].append({
-            "nome": "MelhorCambio (menor valor Salvador)",
-            "endereco": "Salvador, BA (agregado do site)",
-            "valor_venda_especie": resultado["papel_moeda_menor"],
-            "valor_venda_cartao": resultado["cartao_prepago_menor"],
-            "correspondente": None,
-        })
-
-
-# ---------- helpers ----------
-
-def _plain_text(page) -> str:
-    try:
-        return page.evaluate("document.body.innerText")
-    except Exception:
-        return ""
-
-
-def _proximo_valor(texto: str) -> float | None:
-    """Encontra o primeiro valor decimal plausivel no texto."""
-    vals = find_prices_in_range(texto, lo=4.0, hi=15.0)
-    return vals[0] if vals else None
-
-
-def _extrair_endereco(texto: str) -> str | None:
-    import re
-    m = re.search(
-        r"((?:Av\.?|Avenida|Rua|R\.|Praca|Praça|Estrada|Rod\.?)[^\n]{5,150}?(?:Salvador\s*-?\s*BA|Salvador,?\s*BA))",
-        texto, re.IGNORECASE,
-    )
-    return m.group(1).strip() if m else None
-
-
-def _extrair_correspondente(texto: str) -> str | None:
-    import re
-    m = re.search(r"Correspondente\s+Cambial\s+([^\[\n]{3,80})", texto, re.IGNORECASE)
+def _parse(texto: str, resultado: dict):
+    """
+    Parsers baseados em padroes reais do HTML renderizado (debug de 30/06).
+    Cada padrao e testado independentemente e nao sobrescreve valores ja obtidos.
+    """
+    # 1) Bloco "Euro Turismo em {cidade} (BA) - DATA" + tabela abaixo:
+    #    ComercialR$5,8991
+    m = re.search(r"Comercial\s*R\$\s*(\d{1,2}[.,]\d{2,4})", texto)
     if m:
-        return m.group(1).strip()
-    m = re.search(r"(BCO\s+\w[\w\s\.]{3,40})", texto, re.IGNORECASE)
-    return m.group(1).strip() if m else None
+        resultado["cambio_comercial"] = _to_float(m.group(1))
+
+    # 2) "Menor Valor R$ 6,34" (papel moeda)
+    #    Pode vir como "Menor ValorR$6,34" (sem espacos) ou "Menor Valor\nR$ 6,34"
+    for m in re.finditer(
+        r"(Papel\s+Moeda\s*Menor\s+Valor|Menor\s+Valor\s*Papel\s+Moeda|Papel\s+Moeda\W+Menor\s+Valor)\W*R\$?\s*(\d{1,2}[.,]\d{2,4})",
+        texto, re.IGNORECASE,
+    ):
+        v = _to_float(m.group(2))
+        if v and v > 3.0:
+            resultado["papel_moeda_menor"] = v
+            break
+
+    # 2b) fallback: procura pela primeira linha "Papel Moeda" seguida de valor
+    if resultado["papel_moeda_menor"] is None:
+        # padrao mais simples que funciona no debug real:
+        # "Taxas de câmbio turismo para comprar Euro em Salvador\nR$ 6,34\nPapel Moeda"
+        m = re.search(
+            r"comprar\s+Euro\s+em\s+\S+\W+R\$?\s*(\d{1,2}[.,]\d{2,4})\W+Papel\s+Moeda",
+            texto, re.IGNORECASE,
+        )
+        if m:
+            v = _to_float(m.group(1))
+            if v and v > 3.0:
+                resultado["papel_moeda_menor"] = v
+
+    # 3) "Cartão Pré-Pago Menor Valor R$ 6,45"
+    for m in re.finditer(
+        r"Cart[ãa]o\s+Pr[ée][-\s]?Pago\s*Menor\s+Valor\W*R\$?\s*(\d{1,2}[.,]\d{2,4})",
+        texto, re.IGNORECASE,
+    ):
+        v = _to_float(m.group(1))
+        if v and v > 3.0:
+            resultado["cartao_menor"] = v
+            break
+
+    # 4) "Valor com IOF R$ X,XXXX" - aparece 2x na pagina (papel e cartao)
+    valores_com_iof = re.findall(r"Valor\s+com\s+IOF\W*R\$?\s*(\d{1,2}[.,]\d{2,4})", texto, re.IGNORECASE)
+    if len(valores_com_iof) >= 1:
+        v = _to_float(valores_com_iof[0])
+        if v and v > 3.0:
+            resultado["papel_moeda_com_iof"] = v
+    if len(valores_com_iof) >= 2:
+        v = _to_float(valores_com_iof[1])
+        if v and v > 3.0:
+            resultado["cartao_com_iof"] = v
+
+    # 5) Nome da casa principal - aparece logo apos o valor R$ X,XX no bloco de papel
+    #    No debug real: "R$ 6,34\n\nPapel Moeda  0,00%\n...\nR$ 6,29\nFaça oferta →\nSalvador Cãmbio"
+    #    Vamos procurar antes de "Fazer uma oferta" ou "Faça oferta"
+    m = re.search(
+        r"Fa[çc]a\s+oferta\s*[→>»]?\s*\n?\s*([A-ZÀ-Ú][\w\sÃãáâàéêíóôõúçÇ\-]{3,60}?)\s*\n",
+        texto,
+    )
+    if m:
+        nome = m.group(1).strip()
+        # normaliza "Salvador Cãmbio" -> "Salvador Câmbio"
+        nome = nome.replace("Cãmbio", "Câmbio").replace("cãmbio", "câmbio")
+        if len(nome) > 4 and "R$" not in nome:
+            resultado["casa_principal"] = nome
+
+
+def _to_float(s: str) -> float | None:
+    if not s:
+        return None
+    try:
+        return float(s.replace(".", "").replace(",", ".") if s.count(",") == 1 and s.count(".") <= 1
+                     else s.replace(",", "."))
+    except ValueError:
+        return None
 
 
 if __name__ == "__main__":
     import json
-    dados = scrape_melhorcambio_salvador()
-    print(json.dumps(dados, indent=2, ensure_ascii=False))
+    for cidade in ["salvador", "sao-paulo", "rio-de-janeiro"]:
+        print(f"\n=== {cidade} ===")
+        print(json.dumps(scrape_cidade(cidade), indent=2, ensure_ascii=False))

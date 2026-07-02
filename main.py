@@ -132,69 +132,76 @@ def _safe_scrape(nome, fn):
 
 
 def coletar_melhorcambio(config, ptax, wise, dry_run) -> int:
-    from scrapers.melhorcambio import scrape_melhorcambio_salvador
-    print("\n[MelhorCambio] iniciando scraping...")
-    dados = _safe_scrape("MelhorCambio", scrape_melhorcambio_salvador)
-    if dados.get("erro"):
-        print(f"[MelhorCambio] falhou: {dados['erro']}")
-        return 0
-
-    print(f"[MelhorCambio] comercial={dados.get('cambio_comercial')} "
-          f"papel_menor={dados.get('papel_moeda_menor')} "
-          f"casas={dados.get('casas_count', 0)}")
+    """
+    Coleta cotacao de EUR turismo no MelhorCambio em 3 cidades:
+    - Salvador (aplicada a Salvador Câmbio Itaigara)
+    - Sao Paulo (benchmark)
+    - Rio de Janeiro (benchmark)
+    """
+    from scrapers.melhorcambio import scrape_cidade
 
     processadas = 0
-    slugs_map = _mapear_slugs(config)
+    cidades_config = {
+        "salvador": {
+            "slug": "salvador-cambio-itaigara",
+            "cria": False,  # ja existe no config
+        },
+        "sao-paulo": {
+            "slug": "melhorcambio-sp",
+            "nome": "MelhorCâmbio - São Paulo (benchmark)",
+            "endereco": "São Paulo, SP (menor valor listado)",
+            "bairro": "Benchmark",
+            "cria": True,
+        },
+        "rio-de-janeiro": {
+            "slug": "melhorcambio-rj",
+            "nome": "MelhorCâmbio - Rio de Janeiro (benchmark)",
+            "endereco": "Rio de Janeiro, RJ (menor valor listado)",
+            "bairro": "Benchmark",
+            "cria": True,
+        },
+    }
 
-    for casa in dados.get("casas") or []:
-        slug = _match_slug(casa.get("nome", ""), slugs_map)
-        if not slug:
-            import re
-            base = re.sub(r"[^a-z0-9]+", "-", casa["nome"].lower()).strip("-")
-            slug = f"{base}-mc"
-            if not dry_run:
-                upsert_casa_cambio({
-                    "slug": slug, "nome": casa["nome"],
-                    "cobertura": "auto_melhorcambio",
-                    "url": dados["url"], "cotacao_url": dados["url"],
-                    "endereco": casa.get("endereco") or "Salvador, BA",
-                    "bairro": None, "tipo": "casa_cambio",
-                    "horario": None, "telefone": None, "whatsapp": None,
-                    "google_maps": None,
-                    "formas_pagamento": ["Pix", "TED", "Dinheiro"],
-                    "agendamento_acima": 3000,
-                })
+    for cidade, cfg in cidades_config.items():
+        print(f"\n[MelhorCambio-{cidade}] iniciando scraping...")
+        dados = _safe_scrape(f"MelhorCambio-{cidade}", lambda c=cidade: scrape_cidade(c))
+        if dados.get("erro"):
+            print(f"[MelhorCambio-{cidade}] falhou: {dados['erro']}")
+            continue
 
-        if casa.get("valor_venda_especie"):
-            processar_cotacao(
-                slug, casa["valor_venda_especie"], ptax, wise, config,
-                valor_cartao=casa.get("valor_venda_cartao"),
-                fonte="melhorcambio",
-                observacao=f"corresp: {casa['correspondente']}" if casa.get("correspondente") else "",
-                dry_run=dry_run,
-            )
-            processadas += 1
+        print(f"[MelhorCambio-{cidade}] papel_menor={dados.get('papel_moeda_menor')} "
+              f"cartao_menor={dados.get('cartao_menor')} "
+              f"comercial={dados.get('cambio_comercial')} "
+              f"casa={dados.get('casa_principal')}")
 
-    # fallback agregado
-    if processadas == 0 and dados.get("papel_moeda_menor"):
-        slug = "melhorcambio-agregado"
-        if not dry_run:
+        if not dados.get("papel_moeda_menor"):
+            print(f"[MelhorCambio-{cidade}] sem valor - pulando")
+            continue
+
+        # cria casa se necessario (benchmarks)
+        if cfg["cria"] and not dry_run:
             upsert_casa_cambio({
-                "slug": slug,
-                "nome": "MelhorCambio (menor valor Salvador)",
+                "slug": cfg["slug"],
+                "nome": cfg["nome"],
                 "cobertura": "auto_melhorcambio",
-                "url": dados["url"], "cotacao_url": dados["url"],
-                "endereco": "Salvador, BA (menor valor listado)",
-                "bairro": "Diversos", "tipo": "online",
-                "horario": None, "telefone": None, "whatsapp": None,
+                "url": dados["url"],
+                "cotacao_url": dados["url"],
+                "endereco": cfg["endereco"],
+                "bairro": cfg["bairro"],
+                "tipo": "online",
+                "horario": None,
+                "telefone": None,
+                "whatsapp": None,
                 "google_maps": None,
                 "formas_pagamento": ["Pix", "TED", "Dinheiro"],
                 "agendamento_acima": 3000,
             })
+
         processar_cotacao(
-            slug, dados["papel_moeda_menor"], ptax, wise, config,
-            valor_cartao=dados.get("cartao_prepago_menor"),
-            fonte="melhorcambio", observacao="menor valor no site",
+            cfg["slug"], dados["papel_moeda_menor"], ptax, wise, config,
+            valor_cartao=dados.get("cartao_menor"),
+            fonte="melhorcambio",
+            observacao=f"{cidade} - casa: {dados.get('casa_principal') or '?'}",
             dry_run=dry_run,
         )
         processadas += 1
