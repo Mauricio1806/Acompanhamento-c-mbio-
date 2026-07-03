@@ -1,7 +1,7 @@
 {
   "meta": {
     "data": "2026-07-03",
-    "timestamp": "2026-07-03T00:57:01",
+    "timestamp": "2026-07-03T01:10:44",
     "volumes_referencia_eur": [
       5000,
       10000,
@@ -19,6 +19,22 @@
         "custo_efetivo": 6.4704,
         "valor_venda": 6.4,
         "spread_ptax": 7.61
+      },
+      {
+        "posicao": 2,
+        "casa_slug": "confidence-salvador-shopping",
+        "nome": "Travelex Confidence - Salvador Shopping",
+        "custo_efetivo": 6.8272,
+        "valor_venda": 6.7529,
+        "spread_ptax": 13.55
+      },
+      {
+        "posicao": 3,
+        "casa_slug": "confidence-shopping-barra",
+        "nome": "Travelex Confidence - Shopping Barra",
+        "custo_efetivo": 6.8272,
+        "valor_venda": 6.7529,
+        "spread_ptax": 13.55
       }
     ],
     "completo": [
@@ -27,6 +43,36 @@
         "casa_slug": "salvador-cambio-itaigara",
         "nome": "Salvador Cambio (corresp. Daycoval)",
         "custo_efetivo": 6.4704
+      },
+      {
+        "posicao": 2,
+        "casa_slug": "confidence-salvador-shopping",
+        "nome": "Travelex Confidence - Salvador Shopping",
+        "custo_efetivo": 6.8272
+      },
+      {
+        "posicao": 3,
+        "casa_slug": "confidence-shopping-barra",
+        "nome": "Travelex Confidence - Shopping Barra",
+        "custo_efetivo": 6.8272
+      },
+      {
+        "posicao": 4,
+        "casa_slug": "confidence-shopping-bahia",
+        "nome": "Travelex Confidence - Shopping da Bahia",
+        "custo_efetivo": 6.8272
+      },
+      {
+        "posicao": 5,
+        "casa_slug": "confidence-paralela",
+        "nome": "Travelex Confidence - Paralela",
+        "custo_efetivo": 6.8272
+      },
+      {
+        "posicao": 6,
+        "casa_slug": "confidence-aeroporto-ssa",
+        "nome": "Travelex Confidence - Aeroporto SSA",
+        "custo_efetivo": 6.8272
       }
     ],
     "por_volume": {
@@ -36,6 +82,41 @@
           "nome": "Salvador Cambio (corresp. Daycoval)",
           "custo_efetivo": 6.4704,
           "custo_total": 32352.0,
+          "economia_vs_pior": 1784.0
+        },
+        {
+          "casa_slug": "confidence-salvador-shopping",
+          "nome": "Travelex Confidence - Salvador Shopping",
+          "custo_efetivo": 6.8272,
+          "custo_total": 34136.0,
+          "economia_vs_pior": 0.0
+        },
+        {
+          "casa_slug": "confidence-shopping-barra",
+          "nome": "Travelex Confidence - Shopping Barra",
+          "custo_efetivo": 6.8272,
+          "custo_total": 34136.0,
+          "economia_vs_pior": 0.0
+        },
+        {
+          "casa_slug": "confidence-shopping-bahia",
+          "nome": "Travelex Confidence - Shopping da Bahia",
+          "custo_efetivo": 6.8272,
+          "custo_total": 34136.0,
+          "economia_vs_pior": 0.0
+        },
+        {
+          "casa_slug": "confidence-paralela",
+          "nome": "Travelex Confidence - Paralela",
+          "custo_efetivo": 6.8272,
+          "custo_total": 34136.0,
+          "economia_vs_pior": 0.0
+        },
+        {
+          "casa_slug": "confidence-aeroporto-ssa",
+          "nome": "Travelex Confidence - Aeroporto SSA",
+          "custo_efetivo": 6.8272,
+          "custo_total": 34136.0,
           "economia_vs_pior": 0.0
         }
       ],
@@ -45,6 +126,41 @@
           "nome": "Salvador Cambio (corresp. Daycoval)",
           "custo_efetivo": 6.4704,
           "custo_total": 64704.0,
+          "economia_vs_pior": 3568.0
+        },
+        {
+          "casa_slug": "confidence-salvador-shopping",
+          "nome": "Travelex Confidence - Salvador Shopping",
+          "custo_efetivo": 6.8272,
+          "custo_total": 68272.0,
+          "economia_vs_pior": 0.0
+        },
+        {
+          "casa_slug": "confidence-shopping-barra",
+          "nome": "Travelex Confidence - Shopping Barra",
+          "custo_efetivo": 6.8272,
+          "custo_total": 68272.0,
+          "economia_vs_pior": 0.0
+        },
+        {
+          "casa_slug": "confidence-shopping-bahia",
+          "nome": "Travelex Confidence - Shopping da Bahia",
+          "custo_efetivo": 6.8272,
+          "custo_total": 68272.0,
+          "economia_vs_pior": 0.0
+        },
+        {
+          "casa_slug": "confidence-paralela",
+          "nome": "Travelex Confidence - Paralela",
+          "custo_efetivo": 6.8272,
+          "custo_total": 68272.0,
+          "economia_vs_pior": 0.0
+        },
+        {
+          "casa_slug": "confidence-aeroporto-ssa",
+          "nome": "Travelex Confidence - Aeroporto SSA",
+          "custo_efetivo": 6.8272,
+          "custo_total": 68272.0,
           "economia_vs_pior": 0.0
         }
       ],
@@ -54,6 +170,41 @@
           "nome": "Salvador Cambio (corresp. Daycoval)",
           "custo_efetivo": 6.4704,
           "custo_total": 129408.0,
+          "economia_vs_pior": 7136.0
+        },
+        {
+          "casa_slug": "confidence-salvador-shopping",
+          "nome": "Travelex Confidence - Salvador Shopping",
+          "custo_efetivo": 6.8272,
+          "custo_total": 136544.0,
+          "economia_vs_pior": 0.0
+        },
+        {
+          "casa_slug": "confidence-shopping-barra",
+          "nome": "Travelex Confidence - Shopping Barra",
+          "custo_efetivo": 6.8272,
+          "custo_total": 136544.0,
+          "economia_vs_pior": 0.0
+        },
+        {
+          "casa_slug": "confidence-shopping-bahia",
+          "nome": "Travelex Confidence - Shopping da Bahia",
+          "custo_efetivo": 6.8272,
+          "custo_total": 136544.0,
+          "economia_vs_pior": 0.0
+        },
+        {
+          "casa_slug": "confidence-paralela",
+          "nome": "Travelex Confidence - Paralela",
+          "custo_efetivo": 6.8272,
+          "custo_total": 136544.0,
+          "economia_vs_pior": 0.0
+        },
+        {
+          "casa_slug": "confidence-aeroporto-ssa",
+          "nome": "Travelex Confidence - Aeroporto SSA",
+          "custo_efetivo": 6.8272,
+          "custo_total": 136544.0,
           "economia_vs_pior": 0.0
         }
       ]
