@@ -19,9 +19,12 @@ BASE_URL_V2 = "https://b8pybk7hl9.execute-api.sa-east-1.amazonaws.com/production
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "application/json",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "pt-BR",
     "Origin": "https://www.confidencecambio.com.br",
     "Referer": "https://www.confidencecambio.com.br/",
+    # token publico hardcoded no frontend da Confidence (descoberto via network capture)
+    "auth": "$2y$12$Jt75LkPEhPlMqte9jiwsDunjvW43405Jztzi4JIDkv9./F/YvWrLC",
 }
 
 TIMEOUT = 15
