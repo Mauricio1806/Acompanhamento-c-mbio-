@@ -174,11 +174,6 @@ def coletar_melhorcambio(config, ptax, wise, dry_run) -> int:
 
 
 def coletar_confidence(config, ptax, wise, dry_run) -> int:
-    """
-    Coleta cotacao EUR turismo da Confidence via API AWS.
-    Aplica a mesma cotacao a todas as 5 unidades Confidence de Salvador,
-    ja que a cotacao e por cidade (Salvador), nao por loja.
-    """
     from scrapers.confidence import scrape_confidence
     print("\n[Confidence] iniciando via API AWS...")
     dados = _safe_scrape("Confidence", scrape_confidence)
@@ -255,6 +250,148 @@ def coletar_ourominas(config, ptax, wise, dry_run) -> int:
     return 1
 
 
+# ============================================================
+# KambioApp — agregador com varias casas de Salvador
+# ============================================================
+
+# mapeamento nome_kambio + palavra-chave no endereco -> slug do config
+KAMBIO_ADDRESS_HINTS = {
+    # Confidence tem 5 unidades - diferenciar por endereco
+    ("confidence", "tancredo neves, 2915"):   "confidence-salvador-shopping",
+    ("confidence", "tancredo neves, 3133"):   "confidence-salvador-shopping",
+    ("confidence", "salvador shopping"):      "confidence-salvador-shopping",
+    ("confidence", "shopping barra"):         "confidence-shopping-barra",
+    ("confidence", "centenario, 2992"):       "confidence-shopping-barra",
+    ("confidence", "centenário, 2992"):       "confidence-shopping-barra",
+    ("confidence", "chame-chame"):            "confidence-shopping-barra",
+    ("confidence", "tancredo neves, 148"):    "confidence-shopping-bahia",
+    ("confidence", "shopping da bahia"):      "confidence-shopping-bahia",
+    ("confidence", "paralela"):               "confidence-paralela",
+    ("confidence", "patamares"):              "confidence-paralela",
+    ("confidence", "luís viana, 8544"):       "confidence-paralela",
+    ("confidence", "aeroporto"):              "confidence-aeroporto-ssa",
+    ("confidence", "são cristóvão"):          "confidence-aeroporto-ssa",
+    # DayCambio
+    ("daycambio", "tancredo neves, 148"):     "daycambio-shopping-bahia",
+    ("daycambio", "shopping da bahia"):       "daycambio-shopping-bahia",
+    # Lumina 2 unidades
+    ("lúmina", "centenário, 2992"):           "lumina-shopping-barra",
+    ("lúmina", "shopping barra"):             "lumina-shopping-barra",
+    ("lumina", "centenário, 2992"):           "lumina-shopping-barra",
+    ("lumina", "shopping barra"):             "lumina-shopping-barra",
+    ("lúmina", "tancredo neves, 3133"):       "lumina-salvador-shopping",
+    ("lúmina", "salvador shopping"):          "lumina-salvador-shopping",
+    ("lumina", "tancredo neves, 3133"):       "lumina-salvador-shopping",
+    # Labor
+    ("labor", "tancredo neves, 3133"):        "labor-cambio",
+    ("labor", "loja 133"):                    "labor-cambio",
+    # Conecta
+    ("conecta", "tancredo neves, 3313"):      "conecta-salvador-shopping",
+    ("conecta", "salvador shopping"):         "conecta-salvador-shopping",
+    ("conecta", "tancredo neves, 1632"):      "conecta-trade-center",
+    ("conecta", "trade center"):              "conecta-trade-center",
+    # Simple
+    ("simple", "tancredo neves, 2227"):       "simple-cambio",
+    ("simple", "salvador prime"):             "simple-cambio",
+    # Prime
+    ("prime", "antônio carlos magalhães, 656"): "prime-cambio-itaigara",
+    ("prime", "itaigara"):                    "prime-cambio-itaigara",
+    # Salvador Cambio
+    ("salvador cambio", "itaigara"):          "salvador-cambio-itaigara",
+    ("salvador câmbio", "itaigara"):          "salvador-cambio-itaigara",
+    # Bahia Cambio
+    ("bahia", "antônio carlos magalhães, 585"): "bahia-cambio",
+    # Voamais
+    ("voamais", "sete de setembro"):          "voamais-barra",
+    # Tours Bahia
+    ("tours", "bélgica"):                     "tours-bahia-international",
+    # Iguatemi
+    ("iguatemi", "tancredo neves, 148"):      "iguatemi-cambio-turismo",
+    # Ourominas
+    ("ourominas", ""):                        "ourominas",
+    # Get Money
+    ("get money", ""):                        "get-money",
+    # Frente
+    ("frente", ""):                           "frente-corretora",
+}
+
+
+def _norm(s: str) -> str:
+    """Remove acentos e passa pra lowercase pra facilitar match."""
+    import unicodedata
+    if not s:
+        return ""
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return s.lower()
+
+
+def _match_kambio_slug(nome_kambio: str, endereco: str) -> str | None:
+    """Encontra slug do config baseado em nome+endereco do KambioApp."""
+    nome_l = _norm(nome_kambio)
+    end_l = _norm(endereco)
+    for (nome_key, end_key), slug in KAMBIO_ADDRESS_HINTS.items():
+        nk = _norm(nome_key)
+        ek = _norm(end_key)
+        if nk in nome_l:
+            if not ek or ek in end_l:
+                return slug
+    return None
+
+
+def coletar_kambioapp(config, ptax, wise, dry_run) -> int:
+    """
+    Coleta cotacoes agregadas de casas de Salvador via KambioApp.
+    Valores retornados JA incluem IOF - dividimos pra ter o valor bruto,
+    pipeline recalcula com IOF de 1.1% (espécie).
+    """
+    from scrapers.kambioapp import scrape_kambioapp
+    print("\n[KambioApp] iniciando scraping do agregador...")
+    dados = _safe_scrape("KambioApp", scrape_kambioapp)
+
+    if dados.get("erro"):
+        print(f"[KambioApp] falhou: {dados['erro']}")
+        return 0
+
+    casas = dados.get("casas") or []
+    print(f"[KambioApp] {len(casas)} casas encontradas")
+
+    if not casas:
+        return 0
+
+    iof_pipeline = config["iof"]["especie"]  # 0.011
+    processadas = 0
+    nao_mapeadas = []
+
+    for casa in casas:
+        nome_k = casa["nome_kambio"]
+        endereco = casa.get("endereco") or ""
+        valor_com_iof = casa["valor_com_iof"]
+
+        slug = _match_kambio_slug(nome_k, endereco)
+        if not slug:
+            nao_mapeadas.append(f"{nome_k} | {endereco[:60]}")
+            continue
+
+        # valor com IOF -> valor bruto (pipeline reaplica IOF)
+        valor_bruto = round(valor_com_iof / (1 + iof_pipeline), 4)
+
+        processar_cotacao(
+            slug, valor_bruto, ptax, wise, config,
+            fonte="kambioapp",
+            observacao=f"KambioApp: valor com IOF R$ {valor_com_iof}",
+            dry_run=dry_run,
+        )
+        processadas += 1
+
+    if nao_mapeadas:
+        print(f"[KambioApp] {len(nao_mapeadas)} casas nao mapeadas:")
+        for n in nao_mapeadas:
+            print(f"  - {n}")
+
+    return processadas
+
+
 def _mapear_slugs(config: dict) -> dict:
     m = {}
     for c in config.get("casas_cambio", []):
@@ -313,9 +450,11 @@ def pipeline(dry_run: bool = False, skip_scraping: bool = False):
 
     ptax, wise = coletar_referencias()
 
-    totais = {"melhorcambio": 0, "confidence": 0, "daycambio": 0, "ourominas": 0, "manual": 0}
+    totais = {"kambioapp": 0, "melhorcambio": 0, "confidence": 0, "daycambio": 0, "ourominas": 0, "manual": 0}
 
     if not skip_scraping:
+        # KambioApp primeiro (agregador com varias casas)
+        totais["kambioapp"]    = coletar_kambioapp(config, ptax, wise, dry_run)
         totais["melhorcambio"] = coletar_melhorcambio(config, ptax, wise, dry_run)
         totais["confidence"]   = coletar_confidence(config, ptax, wise, dry_run)
         totais["daycambio"]    = coletar_daycambio(config, ptax, wise, dry_run)
