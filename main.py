@@ -186,30 +186,30 @@ def coletar_confidence(config, ptax, wise, dry_run) -> int:
     if dados.get("erro"):
         print(f"[Confidence] falhou: {dados['erro']}")
         return 0
-    if not dados.get("vet_eur"):
-        print(f"[Confidence] sem VET (valor bruto: {dados.get('valor_bruto')})")
+    if not dados.get("valor_bruto"):
+        print(f"[Confidence] sem valor bruto")
         return 0
 
-    vet = dados["vet_eur"]
     valor_bruto = dados["valor_bruto"]
+    iof_api = dados.get("iof_pct")
+    taxa_api = dados.get("taxa_pct")
+
+    # IMPORTANTE: usamos o valor_bruto DIRETO como venda espécie.
+    # Os campos iof/taxa da API sao para outros produtos (remessa 3.5%),
+    # nao para papel-moeda. Nosso pipeline aplica IOF 1.1% (espécie) automaticamente.
     print(f"[Confidence] Salvador (id {dados.get('cidade_id')}): "
-          f"bruto R$ {valor_bruto} + IOF {dados.get('iof_pct')}% + taxa {dados.get('taxa_pct')}% = VET R$ {vet}")
+          f"valor bruto R$ {valor_bruto} (API tb informou iof {iof_api}% + taxa {taxa_api}% - remessa, ignorados)")
 
     # aplica a todas as unidades Confidence do config
     slugs = [c["slug"] for c in config.get("casas_cambio", [])
              if c["slug"].startswith("confidence-")]
 
-    # o VET ja inclui IOF, nosso pipeline reaplica IOF por cima.
-    # entao dividimos pelo IOF esperado pra ter o "valor sem IOF"
-    iof_pipeline = config["iof"]["especie"]  # 0.011 = 1.1%
-    valor_sem_iof_pipeline = round(vet / (1 + iof_pipeline), 4)
-
     processadas = 0
     for slug in slugs:
         processar_cotacao(
-            slug, valor_sem_iof_pipeline, ptax, wise, config,
+            slug, valor_bruto, ptax, wise, config,
             fonte="confidence_api",
-            observacao=f"VET Confidence R$ {vet} (bruto {valor_bruto} + IOF {dados.get('iof_pct')}% + taxa {dados.get('taxa_pct')}%)",
+            observacao=f"valor bruto Confidence Salvador (API)",
             dry_run=dry_run,
         )
         processadas += 1
