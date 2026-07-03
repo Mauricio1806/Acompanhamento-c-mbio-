@@ -174,28 +174,42 @@ def coletar_melhorcambio(config, ptax, wise, dry_run) -> int:
 
 
 def coletar_confidence(config, ptax, wise, dry_run) -> int:
+    """
+    Coleta cotacao EUR turismo da Confidence via API AWS.
+    Aplica a mesma cotacao a todas as 5 unidades Confidence de Salvador,
+    ja que a cotacao e por cidade (Salvador), nao por loja.
+    """
     from scrapers.confidence import scrape_confidence
-    print("\n[Confidence] iniciando scraping...")
+    print("\n[Confidence] iniciando via API AWS...")
     dados = _safe_scrape("Confidence", scrape_confidence)
-    if dados.get("erro") or not dados.get("vet_eur"):
-        print(f"[Confidence] sem cotacao ({dados.get('erro') or 'vet nao encontrado'})")
+
+    if dados.get("erro"):
+        print(f"[Confidence] falhou: {dados['erro']}")
+        return 0
+    if not dados.get("vet_eur"):
+        print(f"[Confidence] sem VET (valor bruto: {dados.get('valor_bruto')})")
         return 0
 
-    print(f"[Confidence] VET EUR: {dados['vet_eur']}")
+    vet = dados["vet_eur"]
+    valor_bruto = dados["valor_bruto"]
+    print(f"[Confidence] Salvador (id {dados.get('cidade_id')}): "
+          f"bruto R$ {valor_bruto} + IOF {dados.get('iof_pct')}% + taxa {dados.get('taxa_pct')}% = VET R$ {vet}")
 
+    # aplica a todas as unidades Confidence do config
     slugs = [c["slug"] for c in config.get("casas_cambio", [])
              if c["slug"].startswith("confidence-")]
 
-    valor = dados["vet_eur"]
-    iof = config["iof"]["especie"]
-    valor_sem_iof = round(valor / (1 + iof), 4)
+    # o VET ja inclui IOF, nosso pipeline reaplica IOF por cima.
+    # entao dividimos pelo IOF esperado pra ter o "valor sem IOF"
+    iof_pipeline = config["iof"]["especie"]  # 0.011 = 1.1%
+    valor_sem_iof_pipeline = round(vet / (1 + iof_pipeline), 4)
 
     processadas = 0
     for slug in slugs:
         processar_cotacao(
-            slug, valor_sem_iof, ptax, wise, config,
-            fonte="confidence_site",
-            observacao=f"VET original {valor}",
+            slug, valor_sem_iof_pipeline, ptax, wise, config,
+            fonte="confidence_api",
+            observacao=f"VET Confidence R$ {vet} (bruto {valor_bruto} + IOF {dados.get('iof_pct')}% + taxa {dados.get('taxa_pct')}%)",
             dry_run=dry_run,
         )
         processadas += 1

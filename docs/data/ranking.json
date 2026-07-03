@@ -1,7 +1,7 @@
 {
   "meta": {
-    "data": "2026-07-02",
-    "timestamp": "2026-07-02T20:23:22",
+    "data": "2026-07-03",
+    "timestamp": "2026-07-03T00:53:05",
     "volumes_referencia_eur": [
       5000,
       10000,
@@ -11,52 +11,8 @@
     "cidade": "Salvador/BA"
   },
   "ranking": {
-    "top3": [
-      {
-        "posicao": 1,
-        "casa_slug": "salvador-cambio-itaigara",
-        "nome": "Salvador Cambio (corresp. Daycoval)",
-        "custo_efetivo": 6.4704,
-        "valor_venda": 6.4,
-        "spread_ptax": 7.61
-      }
-    ],
-    "completo": [
-      {
-        "posicao": 1,
-        "casa_slug": "salvador-cambio-itaigara",
-        "nome": "Salvador Cambio (corresp. Daycoval)",
-        "custo_efetivo": 6.4704
-      }
-    ],
-    "por_volume": {
-      "5000": [
-        {
-          "casa_slug": "salvador-cambio-itaigara",
-          "nome": "Salvador Cambio (corresp. Daycoval)",
-          "custo_efetivo": 6.4704,
-          "custo_total": 32352.0,
-          "economia_vs_pior": 0.0
-        }
-      ],
-      "10000": [
-        {
-          "casa_slug": "salvador-cambio-itaigara",
-          "nome": "Salvador Cambio (corresp. Daycoval)",
-          "custo_efetivo": 6.4704,
-          "custo_total": 64704.0,
-          "economia_vs_pior": 0.0
-        }
-      ],
-      "20000": [
-        {
-          "casa_slug": "salvador-cambio-itaigara",
-          "nome": "Salvador Cambio (corresp. Daycoval)",
-          "custo_efetivo": 6.4704,
-          "custo_total": 129408.0,
-          "economia_vs_pior": 0.0
-        }
-      ]
-    }
+    "top3": [],
+    "completo": [],
+    "por_volume": {}
   }
 }

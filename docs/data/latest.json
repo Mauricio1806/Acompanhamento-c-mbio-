@@ -1,14 +1,14 @@
 {
   "meta": {
-    "data_coleta": "2026-07-02",
-    "hora_atualizacao": "20:23:22",
-    "timestamp": "2026-07-02T20:23:22",
+    "data_coleta": "2026-07-03",
+    "hora_atualizacao": "00:53:05",
+    "timestamp": "2026-07-03T00:53:05",
     "total_casas": 29,
-    "casas_com_cotacao_hoje": 1,
-    "casas_sem_cotacao_hoje": 28,
+    "casas_com_cotacao_hoje": 0,
+    "casas_sem_cotacao_hoje": 29,
     "moeda": "EUR",
     "cidade": "Salvador/BA",
-    "menor_custo_30_dias": 6.4603
+    "menor_custo_30_dias": null
   },
   "cotacoes": [
     {
@@ -650,21 +650,22 @@
         "Dinheiro"
       ],
       "agendamento_acima": 3000,
-      "valor_venda_especie": 6.4,
-      "valor_venda_cartao": 6.51,
-      "spread_ptax_pct": 7.61,
-      "spread_wise_pct": 7.53,
-      "iof_especie_pct": 1.0999999999999999,
-      "custo_efetivo": 6.4704,
-      "variacao_dia_anterior_rs": 0.01,
-      "variacao_dia_anterior_pct": 0.16,
-      "ptax_venda": 5.9472,
-      "wise_rate": 5.95171,
-      "hora_coleta": "20:23:22",
-      "sem_cotacao_hoje": false,
+      "valor_venda_especie": null,
+      "valor_venda_cartao": null,
+      "spread_ptax_pct": null,
+      "spread_wise_pct": null,
+      "iof_especie_pct": null,
+      "custo_efetivo": null,
+      "variacao_dia_anterior_rs": null,
+      "variacao_dia_anterior_pct": null,
+      "ptax_venda": null,
+      "wise_rate": null,
+      "hora_coleta": null,
+      "sem_cotacao_hoje": true,
+      "ultima_cotacao_data": null,
       "e_menor_30_dias": false,
-      "fonte": "melhorcambio",
-      "observacao": "casa: Salvador Câmbio [ALERTA: spread >5.0% vs PTAX]"
+      "fonte": null,
+      "observacao": "Sem coleta hoje. Consulte pelo botao de WhatsApp/site."
     },
     {
       "casa_slug": "simple-cambio",
