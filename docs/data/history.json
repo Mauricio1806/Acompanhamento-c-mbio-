@@ -1,10 +1,23 @@
 {
   "meta": {
     "periodo_dias": 90,
-    "total_registros": 0,
-    "data_inicio": null,
-    "data_fim": null,
-    "timestamp": "2026-07-03T00:53:05"
+    "total_registros": 1,
+    "data_inicio": "2026-07-03",
+    "data_fim": "2026-07-03",
+    "timestamp": "2026-07-03T00:57:01"
   },
-  "serie_temporal": []
+  "serie_temporal": [
+    {
+      "data": "2026-07-03",
+      "ptax": 5.9472,
+      "casas": {
+        "salvador-cambio-itaigara": {
+          "nome": "Salvador Cambio (corresp. Daycoval)",
+          "valor_venda": 6.4,
+          "custo_efetivo": 6.4704,
+          "spread_ptax": 7.61
+        }
+      }
+    }
+  ]
 }
