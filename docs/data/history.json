@@ -1,10 +1,10 @@
 {
   "meta": {
     "periodo_dias": 90,
-    "total_registros": 54,
+    "total_registros": 60,
     "data_inicio": "2026-07-03",
-    "data_fim": "2026-07-06",
-    "timestamp": "2026-07-06T20:55:34"
+    "data_fim": "2026-07-07",
+    "timestamp": "2026-07-07T15:45:29"
   },
   "serie_temporal": [
     {
@@ -172,6 +172,48 @@
           "valor_venda": 6.1929,
           "custo_efetivo": 6.261,
           "spread_ptax": 4.89
+        }
+      }
+    },
+    {
+      "data": "2026-07-07",
+      "ptax": 5.8802,
+      "casas": {
+        "salvador-cambio-itaigara": {
+          "nome": "Salvador Cambio (corresp. Daycoval)",
+          "valor_venda": 6.32,
+          "custo_efetivo": 6.3895,
+          "spread_ptax": 7.48
+        },
+        "confidence-salvador-shopping": {
+          "nome": "Travelex Confidence - Salvador Shopping",
+          "valor_venda": 6.2054,
+          "custo_efetivo": 6.2737,
+          "spread_ptax": 5.53
+        },
+        "confidence-shopping-barra": {
+          "nome": "Travelex Confidence - Shopping Barra",
+          "valor_venda": 6.2054,
+          "custo_efetivo": 6.2737,
+          "spread_ptax": 5.53
+        },
+        "confidence-shopping-bahia": {
+          "nome": "Travelex Confidence - Shopping da Bahia",
+          "valor_venda": 6.2054,
+          "custo_efetivo": 6.2737,
+          "spread_ptax": 5.53
+        },
+        "confidence-paralela": {
+          "nome": "Travelex Confidence - Paralela",
+          "valor_venda": 6.2054,
+          "custo_efetivo": 6.2737,
+          "spread_ptax": 5.53
+        },
+        "confidence-aeroporto-ssa": {
+          "nome": "Travelex Confidence - Aeroporto SSA",
+          "valor_venda": 6.2054,
+          "custo_efetivo": 6.2737,
+          "spread_ptax": 5.53
         }
       }
     }
