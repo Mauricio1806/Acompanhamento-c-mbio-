@@ -1,10 +1,10 @@
 {
   "meta": {
     "periodo_dias": 90,
-    "total_registros": 126,
+    "total_registros": 131,
     "data_inicio": "2026-07-03",
-    "data_fim": "2026-07-12",
-    "timestamp": "2026-07-12T20:08:28"
+    "data_fim": "2026-07-13",
+    "timestamp": "2026-07-13T15:44:12"
   },
   "serie_temporal": [
     {
@@ -424,6 +424,42 @@
           "valor_venda": 6.1571,
           "custo_efetivo": 6.2248,
           "spread_ptax": 5.37
+        }
+      }
+    },
+    {
+      "data": "2026-07-13",
+      "ptax": 5.844,
+      "casas": {
+        "confidence-salvador-shopping": {
+          "nome": "Travelex Confidence - Salvador Shopping",
+          "valor_venda": 6.1632,
+          "custo_efetivo": 6.231,
+          "spread_ptax": 5.46
+        },
+        "confidence-shopping-barra": {
+          "nome": "Travelex Confidence - Shopping Barra",
+          "valor_venda": 6.1632,
+          "custo_efetivo": 6.231,
+          "spread_ptax": 5.46
+        },
+        "confidence-shopping-bahia": {
+          "nome": "Travelex Confidence - Shopping da Bahia",
+          "valor_venda": 6.1632,
+          "custo_efetivo": 6.231,
+          "spread_ptax": 5.46
+        },
+        "confidence-paralela": {
+          "nome": "Travelex Confidence - Paralela",
+          "valor_venda": 6.1632,
+          "custo_efetivo": 6.231,
+          "spread_ptax": 5.46
+        },
+        "confidence-aeroporto-ssa": {
+          "nome": "Travelex Confidence - Aeroporto SSA",
+          "valor_venda": 6.1632,
+          "custo_efetivo": 6.231,
+          "spread_ptax": 5.46
         }
       }
     }
