@@ -1,10 +1,10 @@
 {
   "meta": {
     "periodo_dias": 90,
-    "total_registros": 131,
+    "total_registros": 137,
     "data_inicio": "2026-07-03",
     "data_fim": "2026-07-13",
-    "timestamp": "2026-07-13T15:44:12"
+    "timestamp": "2026-07-13T20:19:57"
   },
   "serie_temporal": [
     {
@@ -433,33 +433,39 @@
       "casas": {
         "confidence-salvador-shopping": {
           "nome": "Travelex Confidence - Salvador Shopping",
-          "valor_venda": 6.1632,
-          "custo_efetivo": 6.231,
-          "spread_ptax": 5.46
+          "valor_venda": 6.1668,
+          "custo_efetivo": 6.2346,
+          "spread_ptax": 5.66
         },
         "confidence-shopping-barra": {
           "nome": "Travelex Confidence - Shopping Barra",
-          "valor_venda": 6.1632,
-          "custo_efetivo": 6.231,
-          "spread_ptax": 5.46
+          "valor_venda": 6.1668,
+          "custo_efetivo": 6.2346,
+          "spread_ptax": 5.66
         },
         "confidence-shopping-bahia": {
           "nome": "Travelex Confidence - Shopping da Bahia",
-          "valor_venda": 6.1632,
-          "custo_efetivo": 6.231,
-          "spread_ptax": 5.46
+          "valor_venda": 6.1668,
+          "custo_efetivo": 6.2346,
+          "spread_ptax": 5.66
         },
         "confidence-paralela": {
           "nome": "Travelex Confidence - Paralela",
-          "valor_venda": 6.1632,
-          "custo_efetivo": 6.231,
-          "spread_ptax": 5.46
+          "valor_venda": 6.1668,
+          "custo_efetivo": 6.2346,
+          "spread_ptax": 5.66
         },
         "confidence-aeroporto-ssa": {
           "nome": "Travelex Confidence - Aeroporto SSA",
-          "valor_venda": 6.1632,
-          "custo_efetivo": 6.231,
-          "spread_ptax": 5.46
+          "valor_venda": 6.1668,
+          "custo_efetivo": 6.2346,
+          "spread_ptax": 5.66
+        },
+        "salvador-cambio-itaigara": {
+          "nome": "Salvador Cambio (corresp. Daycoval)",
+          "valor_venda": 6.28,
+          "custo_efetivo": 6.3491,
+          "spread_ptax": 7.6
         }
       }
     }
