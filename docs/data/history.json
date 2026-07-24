@@ -1,10 +1,10 @@
 {
   "meta": {
     "periodo_dias": 90,
-    "total_registros": 262,
+    "total_registros": 268,
     "data_inicio": "2026-07-03",
     "data_fim": "2026-07-24",
-    "timestamp": "2026-07-24T14:59:47"
+    "timestamp": "2026-07-24T20:24:58"
   },
   "serie_temporal": [
     {
@@ -895,39 +895,39 @@
       "casas": {
         "salvador-cambio-itaigara": {
           "nome": "Salvador Cambio (corresp. Daycoval)",
-          "valor_venda": 6.19,
-          "custo_efetivo": 6.2581,
-          "spread_ptax": 7.22
+          "valor_venda": 6.21,
+          "custo_efetivo": 6.2783,
+          "spread_ptax": 7.66
         },
         "confidence-salvador-shopping": {
           "nome": "Travelex Confidence - Salvador Shopping",
-          "valor_venda": 6.0738,
-          "custo_efetivo": 6.1406,
-          "spread_ptax": 5.21
+          "valor_venda": 6.0899,
+          "custo_efetivo": 6.1569,
+          "spread_ptax": 5.58
         },
         "confidence-shopping-barra": {
           "nome": "Travelex Confidence - Shopping Barra",
-          "valor_venda": 6.0738,
-          "custo_efetivo": 6.1406,
-          "spread_ptax": 5.21
+          "valor_venda": 6.0899,
+          "custo_efetivo": 6.1569,
+          "spread_ptax": 5.58
         },
         "confidence-shopping-bahia": {
           "nome": "Travelex Confidence - Shopping da Bahia",
-          "valor_venda": 6.0738,
-          "custo_efetivo": 6.1406,
-          "spread_ptax": 5.21
+          "valor_venda": 6.0899,
+          "custo_efetivo": 6.1569,
+          "spread_ptax": 5.58
         },
         "confidence-paralela": {
           "nome": "Travelex Confidence - Paralela",
-          "valor_venda": 6.0738,
-          "custo_efetivo": 6.1406,
-          "spread_ptax": 5.21
+          "valor_venda": 6.0899,
+          "custo_efetivo": 6.1569,
+          "spread_ptax": 5.58
         },
         "confidence-aeroporto-ssa": {
           "nome": "Travelex Confidence - Aeroporto SSA",
-          "valor_venda": 6.0738,
-          "custo_efetivo": 6.1406,
-          "spread_ptax": 5.21
+          "valor_venda": 6.0899,
+          "custo_efetivo": 6.1569,
+          "spread_ptax": 5.58
         }
       }
     }
