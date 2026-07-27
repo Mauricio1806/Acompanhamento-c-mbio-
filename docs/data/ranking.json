@@ -1,7 +1,7 @@
 {
   "meta": {
     "data": "2026-07-27",
-    "timestamp": "2026-07-27T15:45:37",
+    "timestamp": "2026-07-27T20:26:40",
     "volumes_referencia_eur": [
       5000,
       10000,
@@ -16,25 +16,25 @@
         "posicao": 1,
         "casa_slug": "confidence-salvador-shopping",
         "nome": "Travelex Confidence - Salvador Shopping",
-        "custo_efetivo": 6.1891,
-        "valor_venda": 6.1218,
-        "spread_ptax": 5.44
+        "custo_efetivo": 6.1963,
+        "valor_venda": 6.1289,
+        "spread_ptax": 5.63
       },
       {
         "posicao": 2,
         "casa_slug": "confidence-shopping-barra",
         "nome": "Travelex Confidence - Shopping Barra",
-        "custo_efetivo": 6.1891,
-        "valor_venda": 6.1218,
-        "spread_ptax": 5.44
+        "custo_efetivo": 6.1963,
+        "valor_venda": 6.1289,
+        "spread_ptax": 5.63
       },
       {
         "posicao": 3,
         "casa_slug": "confidence-shopping-bahia",
         "nome": "Travelex Confidence - Shopping da Bahia",
-        "custo_efetivo": 6.1891,
-        "valor_venda": 6.1218,
-        "spread_ptax": 5.44
+        "custo_efetivo": 6.1963,
+        "valor_venda": 6.1289,
+        "spread_ptax": 5.63
       }
     ],
     "completo": [
@@ -42,37 +42,37 @@
         "posicao": 1,
         "casa_slug": "confidence-salvador-shopping",
         "nome": "Travelex Confidence - Salvador Shopping",
-        "custo_efetivo": 6.1891
+        "custo_efetivo": 6.1963
       },
       {
         "posicao": 2,
         "casa_slug": "confidence-shopping-barra",
         "nome": "Travelex Confidence - Shopping Barra",
-        "custo_efetivo": 6.1891
+        "custo_efetivo": 6.1963
       },
       {
         "posicao": 3,
         "casa_slug": "confidence-shopping-bahia",
         "nome": "Travelex Confidence - Shopping da Bahia",
-        "custo_efetivo": 6.1891
+        "custo_efetivo": 6.1963
       },
       {
         "posicao": 4,
         "casa_slug": "confidence-paralela",
         "nome": "Travelex Confidence - Paralela",
-        "custo_efetivo": 6.1891
+        "custo_efetivo": 6.1963
       },
       {
         "posicao": 5,
         "casa_slug": "confidence-aeroporto-ssa",
         "nome": "Travelex Confidence - Aeroporto SSA",
-        "custo_efetivo": 6.1891
+        "custo_efetivo": 6.1963
       },
       {
         "posicao": 6,
         "casa_slug": "salvador-cambio-itaigara",
         "nome": "Salvador Cambio (corresp. Daycoval)",
-        "custo_efetivo": 6.3086
+        "custo_efetivo": 6.3187
       }
     ],
     "por_volume": {
@@ -80,43 +80,43 @@
         {
           "casa_slug": "confidence-salvador-shopping",
           "nome": "Travelex Confidence - Salvador Shopping",
-          "custo_efetivo": 6.1891,
-          "custo_total": 30945.5,
-          "economia_vs_pior": 597.5
+          "custo_efetivo": 6.1963,
+          "custo_total": 30981.5,
+          "economia_vs_pior": 612.0
         },
         {
           "casa_slug": "confidence-shopping-barra",
           "nome": "Travelex Confidence - Shopping Barra",
-          "custo_efetivo": 6.1891,
-          "custo_total": 30945.5,
-          "economia_vs_pior": 597.5
+          "custo_efetivo": 6.1963,
+          "custo_total": 30981.5,
+          "economia_vs_pior": 612.0
         },
         {
           "casa_slug": "confidence-shopping-bahia",
           "nome": "Travelex Confidence - Shopping da Bahia",
-          "custo_efetivo": 6.1891,
-          "custo_total": 30945.5,
-          "economia_vs_pior": 597.5
+          "custo_efetivo": 6.1963,
+          "custo_total": 30981.5,
+          "economia_vs_pior": 612.0
         },
         {
           "casa_slug": "confidence-paralela",
           "nome": "Travelex Confidence - Paralela",
-          "custo_efetivo": 6.1891,
-          "custo_total": 30945.5,
-          "economia_vs_pior": 597.5
+          "custo_efetivo": 6.1963,
+          "custo_total": 30981.5,
+          "economia_vs_pior": 612.0
         },
         {
           "casa_slug": "confidence-aeroporto-ssa",
           "nome": "Travelex Confidence - Aeroporto SSA",
-          "custo_efetivo": 6.1891,
-          "custo_total": 30945.5,
-          "economia_vs_pior": 597.5
+          "custo_efetivo": 6.1963,
+          "custo_total": 30981.5,
+          "economia_vs_pior": 612.0
         },
         {
           "casa_slug": "salvador-cambio-itaigara",
           "nome": "Salvador Cambio (corresp. Daycoval)",
-          "custo_efetivo": 6.3086,
-          "custo_total": 31543.0,
+          "custo_efetivo": 6.3187,
+          "custo_total": 31593.5,
           "economia_vs_pior": 0.0
         }
       ],
@@ -124,43 +124,43 @@
         {
           "casa_slug": "confidence-salvador-shopping",
           "nome": "Travelex Confidence - Salvador Shopping",
-          "custo_efetivo": 6.1891,
-          "custo_total": 61891.0,
-          "economia_vs_pior": 1195.0
+          "custo_efetivo": 6.1963,
+          "custo_total": 61963.0,
+          "economia_vs_pior": 1224.0
         },
         {
           "casa_slug": "confidence-shopping-barra",
           "nome": "Travelex Confidence - Shopping Barra",
-          "custo_efetivo": 6.1891,
-          "custo_total": 61891.0,
-          "economia_vs_pior": 1195.0
+          "custo_efetivo": 6.1963,
+          "custo_total": 61963.0,
+          "economia_vs_pior": 1224.0
         },
         {
           "casa_slug": "confidence-shopping-bahia",
           "nome": "Travelex Confidence - Shopping da Bahia",
-          "custo_efetivo": 6.1891,
-          "custo_total": 61891.0,
-          "economia_vs_pior": 1195.0
+          "custo_efetivo": 6.1963,
+          "custo_total": 61963.0,
+          "economia_vs_pior": 1224.0
         },
         {
           "casa_slug": "confidence-paralela",
           "nome": "Travelex Confidence - Paralela",
-          "custo_efetivo": 6.1891,
-          "custo_total": 61891.0,
-          "economia_vs_pior": 1195.0
+          "custo_efetivo": 6.1963,
+          "custo_total": 61963.0,
+          "economia_vs_pior": 1224.0
         },
         {
           "casa_slug": "confidence-aeroporto-ssa",
           "nome": "Travelex Confidence - Aeroporto SSA",
-          "custo_efetivo": 6.1891,
-          "custo_total": 61891.0,
-          "economia_vs_pior": 1195.0
+          "custo_efetivo": 6.1963,
+          "custo_total": 61963.0,
+          "economia_vs_pior": 1224.0
         },
         {
           "casa_slug": "salvador-cambio-itaigara",
           "nome": "Salvador Cambio (corresp. Daycoval)",
-          "custo_efetivo": 6.3086,
-          "custo_total": 63086.0,
+          "custo_efetivo": 6.3187,
+          "custo_total": 63187.0,
           "economia_vs_pior": 0.0
         }
       ],
@@ -168,43 +168,43 @@
         {
           "casa_slug": "confidence-salvador-shopping",
           "nome": "Travelex Confidence - Salvador Shopping",
-          "custo_efetivo": 6.1891,
-          "custo_total": 123782.0,
-          "economia_vs_pior": 2390.0
+          "custo_efetivo": 6.1963,
+          "custo_total": 123926.0,
+          "economia_vs_pior": 2448.0
         },
         {
           "casa_slug": "confidence-shopping-barra",
           "nome": "Travelex Confidence - Shopping Barra",
-          "custo_efetivo": 6.1891,
-          "custo_total": 123782.0,
-          "economia_vs_pior": 2390.0
+          "custo_efetivo": 6.1963,
+          "custo_total": 123926.0,
+          "economia_vs_pior": 2448.0
         },
         {
           "casa_slug": "confidence-shopping-bahia",
           "nome": "Travelex Confidence - Shopping da Bahia",
-          "custo_efetivo": 6.1891,
-          "custo_total": 123782.0,
-          "economia_vs_pior": 2390.0
+          "custo_efetivo": 6.1963,
+          "custo_total": 123926.0,
+          "economia_vs_pior": 2448.0
         },
         {
           "casa_slug": "confidence-paralela",
           "nome": "Travelex Confidence - Paralela",
-          "custo_efetivo": 6.1891,
-          "custo_total": 123782.0,
-          "economia_vs_pior": 2390.0
+          "custo_efetivo": 6.1963,
+          "custo_total": 123926.0,
+          "economia_vs_pior": 2448.0
         },
         {
           "casa_slug": "confidence-aeroporto-ssa",
           "nome": "Travelex Confidence - Aeroporto SSA",
-          "custo_efetivo": 6.1891,
-          "custo_total": 123782.0,
-          "economia_vs_pior": 2390.0
+          "custo_efetivo": 6.1963,
+          "custo_total": 123926.0,
+          "economia_vs_pior": 2448.0
         },
         {
           "casa_slug": "salvador-cambio-itaigara",
           "nome": "Salvador Cambio (corresp. Daycoval)",
-          "custo_efetivo": 6.3086,
-          "custo_total": 126172.0,
+          "custo_efetivo": 6.3187,
+          "custo_total": 126374.0,
           "economia_vs_pior": 0.0
         }
       ]
