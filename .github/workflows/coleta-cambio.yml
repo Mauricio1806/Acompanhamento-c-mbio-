@@ -2,8 +2,7 @@ name: Coleta Cambio Salvador
 
 on:
   schedule:
-    - cron: '0 13 * * *'   # 10h BRT
-    - cron: '0 19 * * *'   # 16h BRT
+    - cron: '0 13 1 * *'   # dia 1 de cada mes, 10h BRT
   workflow_dispatch:
 
 permissions:
